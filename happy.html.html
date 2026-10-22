@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>今天好晴天</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=Fredoka:wght@500;700&display=swap">
+<style>
+/* Layout: one sunny column — a smiling sun up top, a "好話" card you tap, a small-joys checklist, and a joy meter. Confetti is the one big moment. */
+:root {
+  --sky: #dff1ff;
+  --sky-deep: #b9e0ff;
+  --ink: #23324a;
+  --ink-soft: #55657e;
+  --sun: #ffc93c;
+  --sun-glow: #ffe48a;
+  --tangerine: #ff8a3d;
+  --leaf: #3fb67a;
+  --berry: #ff5d8f;
+  --card: #ffffff;
+  --card-line: #c9e2f7;
+  --cheek: #ff9aa8;
+  --face: #6b3b12;
+  --sea-btn: #1f8fd6;
+  --sea-btn-edge: #136199;
+  --font-display: "LXGW WenKai TC", "Kaiti TC", "KaiTi", "Noto Sans TC", serif;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-num: "Fredoka", "Noto Sans TC", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sky: #14203a; --sky-deep: #1f3157; --ink: #f3f6ff; --ink-soft: #b3bfd8;
+    --sun: #ffd15c; --sun-glow: #7a5a12; --tangerine: #ffa46b; --leaf: #5fd39a; --berry: #ff7fa7;
+    --card: #1b2a4a; --card-line: #2d4372; --cheek: #ff9aa8; --face: #5a300c; --sea-btn: #2a9ee6; --sea-btn-edge: #0f5a8e;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --sky: #14203a; --sky-deep: #1f3157; --ink: #f3f6ff; --ink-soft: #b3bfd8;
+  --sun: #ffd15c; --sun-glow: #7a5a12; --tangerine: #ffa46b; --leaf: #5fd39a; --berry: #ff7fa7;
+  --card: #1b2a4a; --card-line: #2d4372; --cheek: #ff9aa8; --face: #5a300c; --sea-btn: #2a9ee6; --sea-btn-edge: #0f5a8e;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100%;
+  background: radial-gradient(120% 70% at 50% 0%, var(--sky-deep), var(--sky) 60%) fixed, var(--sky);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 56px;
+  overflow-x: hidden;
+}
+main {
+  max-width: 640px;
+  margin: 0 auto;
+  display: grid;
+  gap: 28px;
+}
+
+/* Hero */
+.hero { display: grid; justify-items: center; text-align: center; gap: 8px; }
+.sun-wrap { width: min(240px, 62vw); aspect-ratio: 1; max-width: 100%; position: relative; }
+.sun-btn {
+  all: unset; cursor: pointer; display: block; width: 100%; height: 100%; border-radius: 50%;
+}
+.sun-btn:focus-visible { outline: 4px dashed var(--tangerine); outline-offset: 6px; }
+.rays { transform-origin: 100px 100px; animation: spin 24s linear infinite; }
+.rays line { stroke: var(--sun); stroke-width: 9; stroke-linecap: round; }
+.sun-body { fill: var(--sun); }
+.glow { fill: var(--sun-glow); opacity: .55; }
+.eye { fill: var(--face); }
+.cheek { fill: var(--cheek); opacity: .7; }
+.mouth { fill: none; stroke: var(--face); stroke-width: 5; stroke-linecap: round; transition: d .4s ease; }
+.sun-btn:hover .sun-face, .sun-btn.boing .sun-face { animation: boing .6s ease; }
+.sun-face { transform-origin: 100px 100px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes boing { 0%,100% { transform: scale(1); } 35% { transform: scale(1.08, .94); } 65% { transform: scale(.96, 1.05); } }
+
+.eyebrow {
+  font-family: var(--font-num); font-weight: 500; letter-spacing: .12em; text-transform: uppercase;
+  font-size: 13px; color: var(--tangerine); margin: 8px 0 0;
+}
+h1 {
+  font-family: var(--font-display); font-weight: 700; font-size: clamp(34px, 8vw, 52px);
+  line-height: 1.2; margin: 0; text-wrap: balance;
+}
+h1 .hl { color: var(--tangerine); }
+.lead { margin: 0; color: var(--ink-soft); max-width: 32em; text-wrap: balance; }
+
+/* Kind words card */
+.words {
+  background: var(--card); border: 2px solid var(--card-line); border-radius: 28px;
+  padding: 28px 24px 24px; display: grid; gap: 18px; text-align: center;
+  box-shadow: 0 12px 0 -4px var(--card-line);
+}
+.quote {
+  font-family: var(--font-display); font-size: clamp(22px, 5.4vw, 30px); line-height: 1.5;
+  margin: 0; min-height: 3em; display: grid; place-items: center; text-wrap: balance;
+}
+.quote.pop { animation: pop .45s cubic-bezier(.3,1.6,.5,1); }
+@keyframes pop { from { transform: scale(.85); opacity: .2; } to { transform: scale(1); opacity: 1; } }
+.btn {
+  font: 700 18px/1 var(--font-body); color: #3a2200; background: var(--sun);
+  border: 0; border-radius: 999px; padding: 16px 28px; cursor: pointer; justify-self: center;
+  box-shadow: 0 6px 0 var(--tangerine); transition: transform .12s, box-shadow .12s;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 var(--tangerine); }
+.btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--tangerine); }
+.btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 4px; }
+
+/* Small joys */
+.joys h2, .meter h2 {
+  font-family: var(--font-display); font-size: 26px; margin: 0 0 4px; text-wrap: balance;
+}
+.joys p.sub { margin: 0 0 14px; color: var(--ink-soft); font-size: 15px; }
+.joy-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.joy {
+  display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 16px;
+  background: var(--card); border: 2px solid var(--card-line); cursor: pointer; user-select: none;
+  transition: border-color .2s, transform .15s;
+}
+.joy:hover { transform: translateY(-1px); }
+.joy input { position: absolute; opacity: 0; pointer-events: none; }
+.joy .box {
+  flex: none; width: 26px; height: 26px; border-radius: 50%; border: 2.5px solid var(--card-line);
+  display: grid; place-items: center; transition: background .2s, border-color .2s;
+}
+.joy .box svg { width: 14px; height: 14px; stroke: #fff; stroke-width: 3.5; fill: none; opacity: 0; transition: opacity .2s; }
+.joy input:checked + .box { background: var(--leaf); border-color: var(--leaf); }
+.joy input:checked + .box svg { opacity: 1; }
+.joy:has(input:checked) { border-color: var(--leaf); }
+.joy:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
+.joy span.t { min-width: 0; }
+
+/* Meter */
+.meter { display: grid; gap: 10px; }
+.meter-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.meter-num { font-family: var(--font-num); font-weight: 700; font-size: 34px; color: var(--berry); font-variant-numeric: tabular-nums; }
+.meter-num small { font-size: 16px; color: var(--ink-soft); font-weight: 500; }
+.bar { height: 18px; border-radius: 999px; background: var(--card); border: 2px solid var(--card-line); overflow: hidden; }
+.bar i {
+  display: block; height: 100%; width: 0%; border-radius: inherit;
+  background: linear-gradient(90deg, var(--sun), var(--tangerine), var(--berry));
+  transition: width .6s cubic-bezier(.3,1.3,.5,1);
+}
+.meter-note { margin: 0; color: var(--ink-soft); font-size: 15px; }
+
+footer { text-align: center; color: var(--ink-soft); font-size: 14px; }
+
+/* Under the sea: a hands-off ambient scene */
+.btn-sea { background: var(--sea-btn); color: #fff; box-shadow: 0 6px 0 var(--sea-btn-edge); margin-top: 6px; }
+.btn-sea:hover { box-shadow: 0 8px 0 var(--sea-btn-edge); }
+.btn-sea:active { box-shadow: 0 2px 0 var(--sea-btn-edge); }
+#sea { position: fixed; inset: 0; z-index: 30; background: #0d3b66; color: #eaf8ff; }
+#sea canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.sea-top {
+  position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+  padding-top: calc(14px + env(safe-area-inset-top, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.sea-stats { white-space: nowrap; font-family: var(--font-num); font-size: 14px; line-height: 1.6; color: rgba(234,248,255,.85); font-variant-numeric: tabular-nums; text-shadow: 0 1px 4px rgba(0,30,60,.5); }
+.sea-stats b { font-weight: 700; color: #fff; }
+.sea-close {
+  font: 700 15px/1 var(--font-body); color: #eaf8ff; background: rgba(255,255,255,.14);
+  border: 1.5px solid rgba(255,255,255,.35); border-radius: 999px; padding: 10px 16px; cursor: pointer; backdrop-filter: blur(4px);
+}
+.sea-close:hover { background: rgba(255,255,255,.24); }
+.sea-close:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.sea-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; min-width: 0; max-width: min(280px, 62vw); }
+.sea-voice {
+  font: 500 14px/1 var(--font-body); color: #eaf8ff; background: rgba(255,255,255,.14); border: 1.5px solid rgba(255,255,255,.35);
+  border-radius: 999px; height: 40px; padding: 0 12px; order: 3; flex: 1 1 100%; min-width: 0; color-scheme: dark; cursor: pointer;
+}
+.sea-voice:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.sea-voice option { color: #10233a; background: #fff; }
+.sea-sound { display: grid; place-items: center; padding: 0; width: 40px; height: 40px; }
+.sea-sound svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.sea-sound .on { display: none; }
+.sea-sound[aria-pressed="true"] { background: rgba(255,214,102,.3); border-color: #ffd666; }
+.sea-sound[aria-pressed="true"] .on { display: inline; }
+.sea-sound[aria-pressed="true"] .off { display: none; }
+.sea-caption {
+  position: absolute; left: 0; right: 0; bottom: calc(190px + env(safe-area-inset-bottom, 0px)); text-align: center;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  font-family: var(--font-display); font-size: clamp(20px, 4.6vw, 28px); color: #fffbe8;
+  text-shadow: 0 2px 10px rgba(0,25,50,.6); transition: opacity 1.6s ease; text-wrap: balance;
+}
+.sea-caption.fade { opacity: 0; }
+
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rays, .quote.pop, .sun-btn:hover .sun-face, .sun-btn.boing .sun-face { animation: none; }
+}
+</style>
+</head>
+<body>
+<canvas id="confetti" aria-hidden="true"></canvas>
+<div id="sea" hidden role="dialog" aria-modal="true" aria-label="海底世界">
+  <canvas id="sea-canvas" aria-hidden="true"></canvas>
+  <div class="sea-top">
+    <div class="sea-stats">景色 <b id="sea-scene">珊瑚礁</b><br>放鬆時間 <b id="sea-time">0:00</b><br>游過的小魚 <b id="sea-fish">0</b> 條</div>
+    <div class="sea-actions">
+      <select class="sea-voice" id="sea-voice" aria-label="選擇朗讀的聲音" hidden></select>
+      <button class="sea-close sea-sound" id="sea-sound" type="button" aria-pressed="false" aria-label="朗讀字句" title="朗讀字句">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h3l5-4v14l-5-4H4z" fill="currentColor"></path><path class="on" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"></path><path class="off" d="M16 9l6 6M22 9l-6 6"></path></svg>
+      </button>
+      <button class="sea-close" id="sea-close" type="button">回到岸上</button>
+    </div>
+  </div>
+  <p class="sea-caption" id="sea-caption">什麼都不用做，靜靜看就好。</p>
+</div>
+<main>
+  <header class="hero">
+    <div class="sun-wrap">
+      <button class="sun-btn" id="sun" type="button" aria-label="摸摸太陽">
+        <svg viewBox="0 0 200 200" width="100%" height="100%" aria-hidden="true">
+          <g class="rays" id="rays"></g>
+          <circle class="glow" cx="100" cy="100" r="70"></circle>
+          <g class="sun-face">
+            <circle class="sun-body" cx="100" cy="100" r="58"></circle>
+            <ellipse class="eye" cx="80" cy="92" rx="6" ry="8"></ellipse>
+            <ellipse class="eye" cx="120" cy="92" rx="6" ry="8"></ellipse>
+            <ellipse class="cheek" cx="70" cy="112" rx="9" ry="6"></ellipse>
+            <ellipse class="cheek" cx="130" cy="112" rx="9" ry="6"></ellipse>
+            <path class="mouth" id="mouth" d="M84 116 Q100 126 116 116"></path>
+          </g>
+        </svg>
+      </button>
+    </div>
+    <p class="eyebrow">Hello, sunshine</p>
+    <h1>嗨！今天的你<span class="hl">真的很棒</span></h1>
+    <p class="lead">不管今天過得怎樣，你都值得一點點開心。摸摸太陽、抽一句好話，或勾一下今天遇到的小確幸吧。</p>
+    <button class="btn btn-sea" id="dive" type="button">進入海底世界 ～</button>
+  </header>
+
+  <section class="words" aria-live="polite">
+    <p class="quote" id="quote">你笑起來的樣子，比你想像的還要好看。</p>
+    <button class="btn" id="more" type="button">再給我一句好話 ✿</button>
+  </section>
+
+  <section class="joys">
+    <h2>今天的小確幸</h2>
+    <p class="sub">有做到哪幾件？每勾一個，就撒一次彩紙。</p>
+    <ul class="joy-list" id="joys"></ul>
+  </section>
+
+  <section class="meter">
+    <div class="meter-row">
+      <h2>開心指數</h2>
+      <span class="meter-num"><span id="score">0</span><small> / 100</small></span>
+    </div>
+    <div class="bar" role="progressbar" aria-label="開心指數" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="bar"><i id="fill"></i></div>
+    <p class="meter-note" id="note">點點上面的東西，指數就會往上跑。</p>
+  </section>
+
+  <footer>今天也辛苦了。記得喝水、伸個懶腰，然後對自己好一點。</footer>
+</main>
+
+<script>
+(function () {
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Sun rays
+  var rays = document.getElementById("rays");
+  for (var i = 0; i < 12; i++) {
+    var a = (i / 12) * Math.PI * 2;
+    var l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    var r1 = 78, r2 = i % 2 ? 90 : 97;
+    l.setAttribute("x1", 100 + Math.cos(a) * r1);
+    l.setAttribute("y1", 100 + Math.sin(a) * r1);
+    l.setAttribute("x2", 100 + Math.cos(a) * r2);
+    l.setAttribute("y2", 100 + Math.sin(a) * r2);
+    rays.appendChild(l);
+  }
+
+  // Kind words
+  var words = [
+    "你笑起來的樣子，比你想像的還要好看。",
+    "能認識你，是別人的福氣。",
+    "你已經比昨天的自己更進步一點了。",
+    "累了就休息，你不需要一直很厲害。",
+    "有人正在因為你而感到溫暖。",
+    "你的存在本身，就是一件很好的事。",
+    "今天的努力，未來的你會感謝它。",
+    "慢慢來也沒關係，花也不是同一天開的。",
+    "你值得被好好對待，尤其是被你自己。",
+    "世界上剛好有一個你，真是太好了。",
+    "你做得很好，真的。",
+    "下一個轉角，可能就有好事在等你。",
+    "你的善良，大家都看得見。",
+    "今天也請好好吃飯，你值得一頓好吃的。"
+  ];
+  var quote = document.getElementById("quote");
+  var last = 0;
+  document.getElementById("more").addEventListener("click", function (e) {
+    var n;
+    do { n = Math.floor(Math.random() * words.length); } while (n === last);
+    last = n;
+    quote.textContent = words[n];
+    quote.classList.remove("pop"); void quote.offsetWidth; quote.classList.add("pop");
+    var r = e.currentTarget.getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top, 60);
+    bump(6);
+  });
+
+  // Small joys
+  var joys = [
+    "喝到一杯好喝的飲料", "看到一隻可愛的貓或狗", "有人對我笑了一下",
+    "曬到一點點太陽", "聽到一首喜歡的歌", "吃到喜歡的食物",
+    "好好睡了一覺", "完成了一件小事"
+  ];
+  var list = document.getElementById("joys");
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem("joys") || "{}") || {}; } catch (_) { saved = {}; }
+  joys.forEach(function (t, i) {
+    var li = document.createElement("li");
+    var id = "joy-" + i;
+    li.innerHTML = '<label class="joy" for="' + id + '"><input type="checkbox" id="' + id + '">' +
+      '<span class="box"><svg viewBox="0 0 16 16"><path d="M3 8.5 6.5 12 13 4.5"/></svg></span>' +
+      '<span class="t"></span></label>';
+    li.querySelector(".t").textContent = t;
+    var cb = li.querySelector("input");
+    cb.checked = !!saved[i];
+    cb.addEventListener("change", function () {
+      saved[i] = cb.checked;
+      try { localStorage.setItem("joys", JSON.stringify(saved)); } catch (_) {}
+      if (cb.checked) {
+        var r = li.getBoundingClientRect();
+        burst(r.left + 24, r.top + r.height / 2, 40);
+        bump(8);
+      } else {
+        bump(-8);
+      }
+    });
+    list.appendChild(li);
+  });
+
+  // Sun click
+  var sun = document.getElementById("sun");
+  sun.addEventListener("click", function () {
+    sun.classList.remove("boing"); void sun.offsetWidth; sun.classList.add("boing");
+    var r = sun.getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top + r.height / 2, 80);
+    bump(5);
+  });
+
+  // Joy meter
+  var score = 0;
+  Object.keys(saved).forEach(function (k) { if (saved[k]) score += 8; });
+  var scoreEl = document.getElementById("score"), fill = document.getElementById("fill"),
+      bar = document.getElementById("bar"), note = document.getElementById("note"),
+      mouth = document.getElementById("mouth");
+  var notes = [
+    [0, "點點上面的東西，指數就會往上跑。"],
+    [20, "嘴角開始上揚了喔！"],
+    [45, "心情漸漸放晴中 ☀"],
+    [70, "哇，太陽都被你感染了！"],
+    [100, "滿分開心！今天就是屬於你的好日子 🎉"]
+  ];
+  var celebrated = false;
+  function render() {
+    scoreEl.textContent = score;
+    fill.style.width = score + "%";
+    bar.setAttribute("aria-valuenow", score);
+    for (var i = notes.length - 1; i >= 0; i--) { if (score >= notes[i][0]) { note.textContent = notes[i][1]; break; } }
+    var depth = 120 + Math.round(score / 100 * 22);
+    mouth.setAttribute("d", "M" + (84 - score / 20) + " 116 Q100 " + depth + " " + (116 + score / 20) + " 116");
+  }
+  function bump(d) {
+    score = Math.max(0, Math.min(100, score + d));
+    render();
+    if (score === 100 && !celebrated) {
+      celebrated = true;
+      for (var k = 0; k < 5; k++) {
+        (function (k) { setTimeout(function () { burst(innerWidth * (0.15 + k * 0.175), innerHeight * 0.3, 70); }, k * 180); })(k);
+      }
+    }
+    if (score < 100) celebrated = false;
+  }
+  render();
+
+  // Confetti
+  var cv = document.getElementById("confetti"), ctx = cv.getContext("2d");
+  var parts = [], running = false, dpr = 1;
+  var colors = ["#ffc93c", "#ff8a3d", "#3fb67a", "#ff5d8f", "#4aa8ff", "#a77bff"];
+  function size() {
+    dpr = window.devicePixelRatio || 1;
+    cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  size(); addEventListener("resize", size);
+  function burst(x, y, n) {
+    if (reduce) n = Math.round(n / 4);
+    for (var i = 0; i < n; i++) {
+      var a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.2;
+      var s = 4 + Math.random() * 7;
+      parts.push({
+        x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+        w: 6 + Math.random() * 6, h: 4 + Math.random() * 6, r: Math.random() * 6,
+        vr: (Math.random() - 0.5) * 0.4, c: colors[i % colors.length],
+        round: Math.random() < 0.3, life: 0
+      });
+    }
+    if (!running) { running = true; requestAnimationFrame(tick); }
+  }
+  function tick() {
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    for (var i = parts.length - 1; i >= 0; i--) {
+      var p = parts[i];
+      p.vy += 0.18; p.vx *= 0.99; p.vy *= 0.99;
+      p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life++;
+      if (p.y > innerHeight + 20 || p.life > 260) { parts.splice(i, 1); continue; }
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.c;
+      ctx.globalAlpha = Math.min(1, (260 - p.life) / 40);
+      if (p.round) { ctx.beginPath(); ctx.arc(0, 0, p.w / 2, 0, Math.PI * 2); ctx.fill(); }
+      else ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.r)));
+      ctx.restore();
+    }
+    if (parts.length) requestAnimationFrame(tick); else running = false;
+  }
+
+  // Under the sea: an idle scene that plays itself, drifting through several places
+  var sea = document.getElementById("sea"), sc = document.getElementById("sea-canvas"), sx = sc.getContext("2d");
+  var capEl = document.getElementById("sea-caption"), timeEl = document.getElementById("sea-time"),
+      fishEl = document.getElementById("sea-fish"), sceneEl = document.getElementById("sea-scene");
+  var SW = 0, SH = 0, seaOn = false, seaRaf = 0, seaStart = 0, seaLast = 0, fishCount = 0, capTimer = 0, wakeLock = null;
+  var speed = reduce ? 0.4 : 1;
+  var SCENE_SECS = 70, BLEND_SECS = 8, CAPTION_MS = 18000;
+  // Colors are [r,g,b] so one scene can blend smoothly into the next
+  var scenes = [
+    { name: "珊瑚礁", top: [53, 170, 222], mid: [24, 100, 150], bot: [16, 52, 86], ray: [255, 255, 230], rayA: 0.13,
+      sand: [233, 196, 106], weedA: [42, 157, 143], weedB: [82, 183, 136], weedH: 1, glow: 0, ship: 0, coral: 1,
+      fish: [["#ffb703", "#fb8500"], ["#ff6b8b", "#ffc2d1"], ["#7bdff2", "#ffffff"], ["#ff9f1c", "#ffffff"], ["#c77dff", "#e0aaff"], ["#f9f871", "#ffc75f"]],
+      intro: "我們來到了珊瑚礁，到處都是彩色的小魚。",
+      lines: ["一群小魚正在散步。", "珊瑚像一朵一朵的花。", "陽光從水面灑下來了。", "小丑魚在找好朋友。"] },
+    { name: "海藻森林", top: [72, 168, 140], mid: [30, 104, 96], bot: [14, 52, 56], ray: [228, 255, 200], rayA: 0.17,
+      sand: [190, 168, 112], weedA: [56, 102, 65], weedB: [106, 153, 78], weedH: 3.2, glow: 0, ship: 0, coral: 0.3,
+      fish: [["#c9d6df", "#ffffff"], ["#a3c4bc", "#e9f5db"], ["#ffd166", "#f4a261"], ["#90be6d", "#d8f3dc"], ["#bde0fe", "#ffffff"]],
+      intro: "游進了海藻森林，綠色的光好溫柔。",
+      lines: ["高高的海藻輕輕搖擺。", "小魚在海藻之間玩捉迷藏。", "這裡好安靜，像一座森林。", "跟著海藻一起慢慢擺動吧。"] },
+    { name: "夕陽淺灘", evening: true, top: [255, 170, 110], mid: [168, 92, 130], bot: [60, 44, 92], ray: [255, 214, 160], rayA: 0.2,
+      sand: [242, 186, 128], weedA: [231, 111, 81], weedB: [244, 162, 97], weedH: 0.8, glow: 0, ship: 0, coral: 1,
+      fish: [["#ffcad4", "#ffffff"], ["#ffd6a5", "#ffadad"], ["#fdffb6", "#ffc6ff"], ["#a0c4ff", "#ffffff"], ["#ffffff", "#ffd6a5"]],
+      intro: "太陽要下山了，海水變成了粉橘色。",
+      lines: ["夕陽把海水染成了糖果的顏色。", "今天辛苦了，好好休息。", "暖暖的光，照在你身上。", "一天就要溫柔地結束了。"] },
+    { name: "沉船寶藏", top: [44, 120, 170], mid: [22, 70, 112], bot: [10, 34, 60], ray: [200, 230, 255], rayA: 0.1,
+      sand: [176, 156, 108], weedA: [42, 120, 110], weedB: [70, 150, 120], weedH: 1.3, glow: 0, ship: 1, coral: 0.6,
+      fish: [["#ffd60a", "#ffc300"], ["#8ecae6", "#ffffff"], ["#ffb703", "#fb8500"], ["#e0aaff", "#ffffff"]],
+      intro: "前面有一艘很久很久以前的沉船。",
+      lines: ["寶箱裡閃著金色的光。", "小魚把沉船當成了家。", "最珍貴的寶藏，是現在的你。", "慢慢看，不用急。"] },
+    { name: "深海星光", top: [16, 30, 66], mid: [8, 16, 42], bot: [4, 8, 22], ray: [160, 200, 255], rayA: 0.02,
+      sand: [52, 56, 82], weedA: [58, 12, 163], weedB: [76, 201, 240], weedH: 1.4, glow: 1, ship: 0, coral: 0.4,
+      fish: [["#4cc9f0", "#bdefff"], ["#f72585", "#ffb3d9"], ["#80ffdb", "#e0fff7"], ["#b8b8ff", "#ffffff"], ["#ffd60a", "#fff3b0"]],
+      intro: "游到了深海，這裡的魚會自己發光。",
+      lines: ["好多小小的光點，像星星一樣。", "黑黑的海底，一點也不可怕。", "發光的水母正在跳舞。", "閉上眼睛也可以，這裡很安全。"] }
+  ];
+  var common = ["什麼都不用做，靜靜看就好。", "深呼吸……慢慢吐氣……", "肩膀放鬆，眉頭也放鬆。",
+                "泡泡帶走了今天的煩惱。", "小海龜不趕時間，你也不用。", "這裡很安靜，你很安全。"];
+  var sceneIdx = 0, nextIdx = 1, sceneClock = 0, P = null;
+  // The sunset scene only shows in the evening (16:00–19:59, viewer's local time)
+  function sceneAllowed(sc0) { var h = new Date().getHours(); return !sc0.evening || (h >= 16 && h < 20); }
+  function pickNext(i) {
+    for (var n = 1; n <= scenes.length; n++) { var j = (i + n) % scenes.length; if (sceneAllowed(scenes[j])) return j; }
+    return i;
+  }
+  function mix(a, b, k) { return a + (b - a) * k; }
+  function mixC(a, b, k) { return [mix(a[0], b[0], k), mix(a[1], b[1], k), mix(a[2], b[2], k)]; }
+  function rgb(c, a) { return "rgba(" + Math.round(c[0]) + "," + Math.round(c[1]) + "," + Math.round(c[2]) + "," + (a == null ? 1 : a) + ")"; }
+  function sceneParams() {
+    var a = scenes[sceneIdx], b = scenes[nextIdx];
+    var k = Math.max(0, (sceneClock - (SCENE_SECS - BLEND_SECS)) / BLEND_SECS);
+    k = k * k * (3 - 2 * k);
+    var o = { k: k };
+    ["top", "mid", "bot", "ray", "sand", "weedA", "weedB"].forEach(function (key) { o[key] = mixC(a[key], b[key], k); });
+    ["rayA", "weedH", "glow", "ship", "coral"].forEach(function (key) { o[key] = mix(a[key], b[key], k); });
+    return o;
+  }
+  function currentScene() { return scenes[sceneIdx]; }
+
+  var fish = [], bubbles = [], snow = [], weeds = [], jellies = [], corals = [], turtle = null, whale = null;
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function sandY(x) { return SH - 70 + Math.sin(x / 140) * 14 + Math.sin(x / 57) * 6; }
+  function newFish(edge) {
+    // Fish entering during a cross-fade already wear the next scene's colors
+    var sc0 = P && P.k > 0.5 ? scenes[nextIdx] : currentScene();
+    var dir = Math.random() < 0.5 ? 1 : -1, s = rnd(0.45, 1.35), c = sc0.fish[Math.floor(Math.random() * sc0.fish.length)];
+    return { dir: dir, s: s, x: edge ? (dir > 0 ? -60 : SW + 60) : rnd(0, SW), y: rnd(SH * 0.12, SH - 130),
+             v: rnd(0.35, 0.9) * (0.6 + s * 0.4), ph: rnd(0, 6.28), body: c[0], fin: c[1] };
+  }
+  function buildSea() {
+    SW = innerWidth; SH = innerHeight;
+    var d = window.devicePixelRatio || 1;
+    sc.width = SW * d; sc.height = SH * d; sx.setTransform(d, 0, 0, d, 0, 0);
+    P = sceneParams();
+    fish = []; var nf = Math.max(8, Math.round(SW / 90));
+    for (var i = 0; i < nf; i++) fish.push(newFish(false));
+    fish.sort(function (a, b) { return a.s - b.s; });
+    // a little school that swims together
+    var sy = SH * 0.35, sd = Math.random() < 0.5 ? 1 : -1;
+    for (var k = 0; k < 7; k++) fish.push({ dir: sd, s: 0.5, x: rnd(0, 140) + (sd > 0 ? -200 : SW + 60), y: sy + rnd(-30, 30),
+      v: 0.75, ph: rnd(0, 6.28), body: "#9ad1ff", fin: "#ffffff", school: true });
+    weeds = []; for (var x = 20; x < SW; x += rnd(40, 90))
+      weeds.push({ x: x, h: rnd(60, 160), ph: rnd(0, 6.28), alt: Math.random() < 0.5, w: rnd(5, 9) });
+    corals = []; for (var j = 0; j < Math.max(3, SW / 220); j++)
+      corals.push({ x: rnd(30, SW - 30), r: rnd(14, 26), c: ["#ff8fa3", "#ffb4a2", "#f4a261", "#cdb4db"][j % 4] });
+    jellies = []; for (var m = 0; m < Math.max(2, Math.round(SW / 450)); m++)
+      jellies.push({ x: rnd(40, SW - 40), y: rnd(SH * 0.3, SH), s: rnd(0.7, 1.2), ph: rnd(0, 6.28), c: m % 2 ? "#ffc8dd" : "#cdb4ff" });
+    snow = []; for (var n = 0; n < 80; n++) snow.push({ x: rnd(0, SW), y: rnd(0, SH), r: rnd(0.6, 1.8), v: rnd(0.05, 0.2), ph: rnd(0, 6.28) });
+    bubbles = []; turtle = null; whale = null;
+  }
+  function drawFish(f, t) {
+    var bob = Math.sin(t * 1.4 + f.ph) * 6, wig = Math.sin(t * 7 + f.ph) * 4;
+    sx.save(); sx.translate(f.x, f.y + bob); sx.scale(f.dir * f.s, f.s);
+    sx.globalAlpha = 0.55 + f.s * 0.35;
+    if (P.glow > 0.05) { sx.shadowColor = f.body; sx.shadowBlur = 16 * P.glow; }
+    sx.fillStyle = f.fin;
+    sx.beginPath(); sx.moveTo(-18, 0); sx.lineTo(-36, -12 + wig); sx.lineTo(-33, 0); sx.lineTo(-36, 12 + wig); sx.closePath(); sx.fill();
+    sx.beginPath(); sx.moveTo(-4, -10); sx.quadraticCurveTo(4, -22, 10, -9); sx.fill();
+    sx.fillStyle = f.body;
+    sx.beginPath(); sx.ellipse(0, 0, 24, 13, 0, 0, Math.PI * 2); sx.fill();
+    sx.shadowBlur = 0;
+    sx.fillStyle = f.fin; sx.globalAlpha *= 0.6;
+    sx.beginPath(); sx.ellipse(-3, 0, 4, 11, 0, 0, Math.PI * 2); sx.fill();
+    sx.globalAlpha = 1;
+    sx.fillStyle = "#fff"; sx.beginPath(); sx.arc(13, -3, 4, 0, Math.PI * 2); sx.fill();
+    sx.fillStyle = "#1d2b3a"; sx.beginPath(); sx.arc(14, -3, 2, 0, Math.PI * 2); sx.fill();
+    sx.strokeStyle = "#1d2b3a"; sx.lineWidth = 1.4; sx.beginPath(); sx.arc(17, 4, 3, 0.2, 1.6); sx.stroke();
+    sx.restore();
+  }
+  function drawJelly(j, t) {
+    var p = Math.sin(t * 1.3 + j.ph);
+    sx.save(); sx.translate(j.x, j.y); sx.scale(j.s, j.s); sx.globalAlpha = 0.75 + P.glow * 0.2;
+    if (P.glow > 0.05) { sx.shadowColor = j.c; sx.shadowBlur = 24 * P.glow; }
+    sx.strokeStyle = j.c; sx.lineWidth = 2;
+    for (var i = -2; i <= 2; i++) {
+      sx.beginPath(); sx.moveTo(i * 8, 4);
+      for (var k = 1; k <= 5; k++) sx.lineTo(i * 8 + Math.sin(t * 2 + k + i + j.ph) * 4, 4 + k * 10 * (1 + p * 0.08));
+      sx.stroke();
+    }
+    sx.fillStyle = j.c;
+    sx.beginPath(); sx.ellipse(0, 4, 26 * (1 + p * 0.08), 24 * (1 - p * 0.08), 0, Math.PI, 0); sx.closePath(); sx.fill();
+    sx.shadowBlur = 0;
+    sx.fillStyle = "rgba(255,255,255,.45)"; sx.beginPath(); sx.ellipse(-8, -8, 6, 4, -0.5, 0, Math.PI * 2); sx.fill();
+    sx.fillStyle = "#4a2c4f"; sx.beginPath(); sx.arc(-6, -2, 1.8, 0, 7); sx.arc(6, -2, 1.8, 0, 7); sx.fill();
+    sx.restore();
+    j.y -= (0.15 + Math.max(0, p) * 0.35) * speed * seaDt;
+    j.x += Math.sin(t * 0.3 + j.ph) * 0.15 * seaDt;
+    if (j.y < -90) { j.y = SH + 80; j.x = rnd(40, SW - 40); }
+  }
+  function drawTurtle(tt, t) {
+    var fl = Math.sin(t * 1.6) * 0.5;
+    sx.save(); sx.translate(tt.x, tt.y + Math.sin(t * 0.8) * 8); sx.scale(tt.dir, 1);
+    sx.fillStyle = "#8fbc6b";
+    [[-14, 16, 0.6 + fl], [18, 16, -0.6 - fl], [-14, -16, -0.6 - fl], [18, -16, 0.6 + fl]].forEach(function (f) {
+      sx.save(); sx.translate(f[0], f[1]); sx.rotate(f[2]); sx.beginPath(); sx.ellipse(0, 0, 16, 6, 0, 0, 7); sx.fill(); sx.restore();
+    });
+    sx.beginPath(); sx.arc(42, 0, 11, 0, 7); sx.fill();
+    sx.fillStyle = "#1d2b3a"; sx.beginPath(); sx.arc(47, -3, 2, 0, 7); sx.fill();
+    sx.fillStyle = "#5e8c3a"; sx.beginPath(); sx.ellipse(0, 0, 34, 24, 0, 0, 7); sx.fill();
+    sx.fillStyle = "#86b45a";
+    [[0, 0, 9], [-17, -8, 6], [-17, 8, 6], [16, -8, 6], [16, 8, 6]].forEach(function (c) { sx.beginPath(); sx.arc(c[0], c[1], c[2], 0, 7); sx.fill(); });
+    sx.restore();
+    tt.x += tt.dir * 0.4 * speed * seaDt;
+  }
+  // A big, gentle whale far in the background
+  function drawWhale(w, t) {
+    var tail = Math.sin(t * 0.9) * 0.25;
+    sx.save(); sx.translate(w.x, w.y + Math.sin(t * 0.35) * 14); sx.scale(w.dir * w.s, w.s);
+    sx.fillStyle = rgb(mixC(P.mid, [10, 20, 40], 0.45), 0.55);
+    sx.beginPath(); sx.ellipse(0, 0, 140, 46, 0, 0, 7); sx.fill();
+    sx.save(); sx.translate(-130, -4); sx.rotate(tail);
+    sx.beginPath(); sx.moveTo(0, 0); sx.quadraticCurveTo(-40, -10, -70, -38); sx.quadraticCurveTo(-48, 0, -70, 34); sx.quadraticCurveTo(-40, 8, 0, 0); sx.fill();
+    sx.restore();
+    sx.beginPath(); sx.ellipse(10, 34, 40, 10, 0.5, 0, 7); sx.fill();
+    sx.fillStyle = rgb([255, 255, 255], 0.25); sx.beginPath(); sx.arc(96, -8, 4, 0, 7); sx.fill();
+    sx.restore();
+    w.x += w.dir * 0.22 * speed * seaDt;
+  }
+  function drawShip(a, t) {
+    if (a < 0.02) return;
+    var bx = SW * 0.7, by = sandY(SW * 0.7) + 18;
+    sx.save(); sx.globalAlpha = a; sx.translate(bx, by); sx.rotate(-0.12);
+    sx.fillStyle = "#5b3a29";
+    sx.beginPath(); sx.moveTo(-120, -50); sx.lineTo(110, -62); sx.lineTo(80, 10); sx.lineTo(-100, 10); sx.closePath(); sx.fill();
+    sx.fillStyle = "#6f4a33"; sx.fillRect(-90, -78, 60, 30);
+    sx.strokeStyle = "#4a2e20"; sx.lineWidth = 3;
+    for (var i = -100; i < 90; i += 22) { sx.beginPath(); sx.moveTo(i, -52); sx.lineTo(i + 6, 8); sx.stroke(); }
+    sx.lineWidth = 6; sx.beginPath(); sx.moveTo(0, -58); sx.lineTo(10, -190); sx.stroke();
+    sx.fillStyle = "rgba(240,230,210,.55)";
+    sx.beginPath(); sx.moveTo(12, -180); sx.quadraticCurveTo(60, -150 + Math.sin(t * 0.8) * 6, 48, -96); sx.lineTo(10, -100); sx.closePath(); sx.fill();
+    sx.restore();
+  }
+  function drawChest(a, t) {
+    if (a < 0.02) return;
+    var cx = SW * 0.28, cy = sandY(SW * 0.28) + 4;
+    sx.save(); sx.globalAlpha = a; sx.translate(cx, cy);
+    var gl = 0.5 + 0.5 * Math.sin(t * 2);
+    sx.fillStyle = "rgba(255,214,10," + (0.25 + gl * 0.25) + ")";
+    sx.beginPath(); sx.ellipse(0, -26, 34, 18, 0, 0, 7); sx.fill();
+    sx.fillStyle = "#8a5a2b"; sx.fillRect(-24, -22, 48, 22);
+    sx.save(); sx.translate(-24, -22); sx.rotate(-0.5); sx.fillStyle = "#a0693a"; sx.fillRect(0, -14, 48, 14); sx.restore();
+    sx.fillStyle = "#ffd60a";
+    for (var i = 0; i < 6; i++) { sx.beginPath(); sx.arc(-16 + i * 6.5, -22 - (i % 2) * 3, 3.2, 0, 7); sx.fill(); }
+    sx.fillStyle = "#e0b04a"; sx.fillRect(-3, -16, 6, 8);
+    for (var s = 0; s < 3; s++) {
+      var sp = (t * 0.7 + s / 3) % 1;
+      sx.fillStyle = "rgba(255,255,220," + (1 - sp) + ")";
+      sx.beginPath(); sx.arc(-12 + s * 12, -30 - sp * 40, 2, 0, 7); sx.fill();
+    }
+    sx.restore();
+  }
+  var seaDt = 1;
+  function seaFrame(now) {
+    if (!seaOn) return;
+    var dtMs = now - seaLast;
+    seaDt = Math.min(3, dtMs / 16.67); seaLast = now;
+    var t = now / 1000 * speed;
+    sceneClock += Math.min(0.1, dtMs / 1000);
+    if (sceneClock >= SCENE_SECS) { sceneClock = 0; sceneIdx = nextIdx; nextIdx = pickNext(sceneIdx); }
+    var wasBlending = P && P.k > 0;
+    P = sceneParams();
+    if (!wasBlending && P.k > 0) enterNextScene();
+    // water
+    var g = sx.createLinearGradient(0, 0, 0, SH);
+    g.addColorStop(0, rgb(P.top)); g.addColorStop(0.55, rgb(P.mid)); g.addColorStop(1, rgb(P.bot));
+    sx.fillStyle = g; sx.fillRect(0, 0, SW, SH);
+    // sun rays from the surface
+    for (var r = 0; r < 5; r++) {
+      var cx = SW * (r + 0.5) / 5 + Math.sin(t * 0.25 + r * 1.7) * 60;
+      var rg = sx.createLinearGradient(0, 0, 0, SH * 0.85);
+      rg.addColorStop(0, rgb(P.ray, Math.max(0, P.rayA + Math.sin(t * 0.5 + r) * 0.05))); rg.addColorStop(1, rgb(P.ray, 0));
+      sx.fillStyle = rg; sx.beginPath(); sx.moveTo(cx - 25, 0); sx.lineTo(cx + 25, 0); sx.lineTo(cx + 110, SH * 0.85); sx.lineTo(cx - 60, SH * 0.85); sx.fill();
+    }
+    // marine snow, which twinkles like stars in the deep
+    snow.forEach(function (p) {
+      p.y += p.v * speed * seaDt; p.x += Math.sin(t + p.y / 50) * 0.08;
+      if (p.y > SH) { p.y = -4; p.x = rnd(0, SW); }
+      var tw = 0.5 + 0.5 * Math.sin(t * 2.5 + p.ph);
+      sx.fillStyle = rgb(mixC([255, 255, 255], [140, 240, 255], P.glow), mix(0.45, 0.35 + tw * 0.65, P.glow));
+      sx.beginPath(); sx.arc(p.x, p.y, p.r * (1 + P.glow * 0.6), 0, 7); sx.fill();
+    });
+    // whale passes by once in a while
+    if (!whale && Math.random() < 0.0006 * seaDt) {
+      var wd = Math.random() < 0.5 ? 1 : -1;
+      whale = { dir: wd, s: rnd(0.8, 1.2), x: wd > 0 ? -260 : SW + 260, y: rnd(SH * 0.15, SH * 0.35) };
+    }
+    if (whale) { drawWhale(whale, t); if (whale.x < -320 || whale.x > SW + 320) whale = null; }
+    drawShip(P.ship, t);
+    jellies.forEach(function (j) { drawJelly(j, t); });
+    // turtle wanders by now and then
+    if (!turtle && Math.random() < 0.0015 * seaDt) {
+      var td = Math.random() < 0.5 ? 1 : -1;
+      turtle = { dir: td, x: td > 0 ? -80 : SW + 80, y: rnd(SH * 0.25, SH * 0.6) };
+    }
+    if (turtle) { drawTurtle(turtle, t); if (turtle.x < -120 || turtle.x > SW + 120) turtle = null; }
+    // fish
+    fish.forEach(function (f, i) {
+      f.x += f.dir * f.v * speed * seaDt;
+      if ((f.dir > 0 && f.x > SW + 70) || (f.dir < 0 && f.x < -70)) {
+        fishCount++; fishEl.textContent = fishCount;
+        if (f.school) { f.x = f.dir > 0 ? -70 - rnd(0, 200) : SW + 70 + rnd(0, 200); }
+        else { fish[i] = newFish(true); fish[i].s = f.s; }
+      }
+      drawFish(fish[i], t);
+    });
+    // sand, coral, seaweed
+    sx.fillStyle = rgb(P.sand);
+    sx.beginPath(); sx.moveTo(0, SH); for (var x = 0; x <= SW; x += 20) sx.lineTo(x, sandY(x)); sx.lineTo(SW, SH); sx.fill();
+    sx.fillStyle = "rgba(255,255,255,.18)";
+    for (var dx = 30; dx < SW; dx += 70) { sx.beginPath(); sx.arc(dx, sandY(dx) + 25, 2, 0, 7); sx.fill(); }
+    drawChest(P.ship, t);
+    sx.globalAlpha = P.coral;
+    corals.forEach(function (c) {
+      var by = sandY(c.x) + 4; sx.fillStyle = c.c;
+      for (var k = 0; k < 4; k++) { sx.beginPath(); sx.arc(c.x + (k - 1.5) * c.r * 0.7, by - c.r * (0.6 + (k % 2) * 0.5), c.r * 0.55, 0, 7); sx.fill(); }
+    });
+    sx.globalAlpha = 1;
+    sx.lineCap = "round";
+    if (P.glow > 0.05) sx.shadowBlur = 10 * P.glow;
+    weeds.forEach(function (w) {
+      var by = sandY(w.x) + 6, seg = 10, h = w.h * P.weedH, col = rgb(w.alt ? P.weedA : P.weedB);
+      sx.strokeStyle = col; sx.shadowColor = col;
+      sx.lineWidth = w.w * (1 + (P.weedH - 1) * 0.35); sx.beginPath(); sx.moveTo(w.x, by);
+      for (var k = 1; k <= seg; k++) sx.lineTo(w.x + Math.sin(t * 0.9 + w.ph + k * 0.4) * k * 2.2 * (0.6 + P.weedH * 0.4), by - h * k / seg);
+      sx.stroke();
+    });
+    sx.shadowBlur = 0;
+    // bubbles
+    if (Math.random() < 0.08 * seaDt && weeds.length) {
+      var w0 = weeds[Math.floor(Math.random() * weeds.length)];
+      bubbles.push({ x: w0.x, y: sandY(w0.x), r: rnd(2, 6), v: rnd(0.5, 1.2), ph: rnd(0, 6.28) });
+    }
+    sx.strokeStyle = "rgba(255,255,255,.7)"; sx.lineWidth = 1.2;
+    for (var b = bubbles.length - 1; b >= 0; b--) {
+      var bb = bubbles[b]; bb.y -= bb.v * speed * seaDt; bb.x += Math.sin(t * 2 + bb.ph) * 0.3;
+      if (bb.y < -10) { bubbles.splice(b, 1); continue; }
+      sx.beginPath(); sx.arc(bb.x, bb.y, bb.r, 0, 7); sx.stroke();
+      sx.fillStyle = "rgba(255,255,255,.5)"; sx.beginPath(); sx.arc(bb.x - bb.r * 0.35, bb.y - bb.r * 0.35, bb.r * 0.25, 0, 7); sx.fill();
+    }
+    var secs = Math.floor((now - seaStart) / 1000);
+    timeEl.textContent = Math.floor(secs / 60) + ":" + ("0" + secs % 60).slice(-2);
+    seaRaf = requestAnimationFrame(seaFrame);
+  }
+  function showCaption(c) {
+    capEl.classList.add("fade");
+    setTimeout(function () { capEl.textContent = c; capEl.classList.remove("fade"); say(c); }, 1700);
+  }
+  function nextCaption() {
+    var pool = common.concat(currentScene().lines, currentScene().lines), c;
+    do { c = pool[Math.floor(Math.random() * pool.length)]; } while (c === capEl.textContent);
+    showCaption(c);
+  }
+  function enterNextScene() {
+    var nx = scenes[nextIdx];
+    sceneEl.textContent = nx.name;
+    clearInterval(capTimer); capTimer = setInterval(nextCaption, CAPTION_MS);
+    showCaption(nx.intro);
+  }
+  function openSea() {
+    seaOn = true; sea.hidden = false; document.documentElement.style.overflow = "hidden";
+    sceneClock = 0; P = null; nextIdx = pickNext(sceneIdx);
+    buildSea(); fishCount = 0; fishEl.textContent = "0";
+    sceneEl.textContent = currentScene().name;
+    capEl.textContent = common[0]; capEl.classList.remove("fade");
+    say(common[0]);
+    seaStart = seaLast = performance.now();
+    seaRaf = requestAnimationFrame(seaFrame);
+    capTimer = setInterval(nextCaption, CAPTION_MS);
+    try { navigator.wakeLock && navigator.wakeLock.request("screen").then(function (l) { wakeLock = l; }, function () {}); } catch (_) {}
+    document.getElementById("sea-close").focus();
+    bump(10);
+  }
+  function closeSea() {
+    seaOn = false; sea.hidden = true; document.documentElement.style.overflow = "";
+    cancelAnimationFrame(seaRaf); clearInterval(capTimer);
+    if (synth) synth.cancel();
+    if (wakeLock) { wakeLock.release().catch(function () {}); wakeLock = null; }
+    document.getElementById("dive").focus();
+  }
+  // Read captions aloud when the speaker is on
+  var synth = window.speechSynthesis || null, soundBtn = document.getElementById("sea-sound"), soundOn = false,
+      voiceSel = document.getElementById("sea-voice"), voices = [], zhVoice = null, savedVoice = "";
+  try { savedVoice = localStorage.getItem("seaVoice2") || ""; } catch (_) {}
+  // Mei-Jia (美佳) first, then clearer voices: Taiwan Mandarin, natural/online voices; Cantonese last
+  function voiceScore(v) {
+    var sc = 0;
+    if (/mei-?jia|美佳/i.test(v.name)) sc += 200;
+    if (/zh[-_]TW/i.test(v.lang)) sc += 40; else if (/zh[-_]CN|cmn/i.test(v.lang)) sc += 20;
+    if (/zh[-_]HK|yue/i.test(v.lang)) sc -= 30;
+    if (/natural|online|neural|google|premium|enhanced/i.test(v.name)) sc += 25;
+    if (/mei-?jia|hsiaochen|hsiaoyu|yating|ting-?ting|xiaoxiao/i.test(v.name)) sc += 10;
+    return sc;
+  }
+  function pickVoice() {
+    if (!synth) return;
+    voices = synth.getVoices().filter(function (v) { return /^(zh|cmn|yue)/i.test(v.lang); })
+      .sort(function (a, b) { return voiceScore(b) - voiceScore(a); });
+    zhVoice = voices.filter(function (v) { return v.name === savedVoice; })[0] || voices[0] || null;
+    voiceSel.innerHTML = "";
+    voices.forEach(function (v) {
+      var o = document.createElement("option");
+      o.value = v.name; o.textContent = v.name.replace(/^Microsoft |^Google /, "") + "（" + v.lang + "）";
+      if (v === zhVoice) o.selected = true;
+      voiceSel.appendChild(o);
+    });
+    voiceSel.hidden = !soundOn || voices.length < 2;
+  }
+  // Speak ellipses as short pauses instead of reading them out
+  function speakable(text) { return text.replace(/……|…/g, "，").replace(/[～~]/g, ""); }
+  function say(text) {
+    if (!soundOn || !synth || !seaOn) return;
+    synth.cancel();
+    var u = new SpeechSynthesisUtterance(speakable(text));
+    u.lang = zhVoice ? zhVoice.lang : "zh-TW";
+    try { if (zhVoice) u.voice = zhVoice; } catch (_) {}
+    u.rate = 0.9; u.pitch = 1; u.volume = 1;
+    synth.speak(u);
+  }
+  if (synth) { synth.onvoiceschanged = pickVoice; }
+  else { soundBtn.disabled = true; soundBtn.title = "這個瀏覽器不支援朗讀"; }
+  try { soundOn = !!synth && localStorage.getItem("seaSound") === "1"; } catch (_) {}
+  soundBtn.setAttribute("aria-pressed", soundOn);
+  pickVoice();
+  soundBtn.addEventListener("click", function () {
+    soundOn = !soundOn;
+    soundBtn.setAttribute("aria-pressed", soundOn);
+    try { localStorage.setItem("seaSound", soundOn ? "1" : "0"); } catch (_) {}
+    voiceSel.hidden = !soundOn || voices.length < 2;
+    if (soundOn) say(capEl.textContent); else if (synth) synth.cancel();
+  });
+  voiceSel.addEventListener("change", function () {
+    zhVoice = voices.filter(function (v) { return v.name === voiceSel.value; })[0] || zhVoice;
+    try { localStorage.setItem("seaVoice2", voiceSel.value); } catch (_) {}
+    say(capEl.textContent);
+  });
+
+  document.getElementById("dive").addEventListener("click", openSea);
+  document.getElementById("sea-close").addEventListener("click", closeSea);
+  addEventListener("keydown", function (e) { if (e.key === "Escape" && seaOn) closeSea(); });
+  addEventListener("resize", function () { if (seaOn) buildSea(); });
+
+  // A small welcome burst
+  setTimeout(function () { burst(innerWidth / 2, Math.min(innerHeight * 0.25, 200), 70); }, 500);
+})();
+</script>
+</body>
+</html>
