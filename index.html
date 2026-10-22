@@ -3,87 +3,143 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>asiamild 的網站</title>
+  <title>asiamild 的作品集</title>
+  <meta name="description" content="asiamild 做的小網站和小工具">
   <style>
     :root {
-      --bg: #f6f4ef;
-      --card: #ffffff;
-      --text: #1f2328;
-      --muted: #6b7280;
+      --bg: #f5f2ec;
+      --card: #fffdf9;
+      --text: #23201d;
+      --muted: #77706a;
+      --line: #e7e0d6;
       --accent: #2f6f5e;
+      --accent-soft: #e2efe9;
+      --php: #5b5fc7;
+      --php-soft: #ebebfb;
+      --html: #c4622d;
+      --html-soft: #f9e9df;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #14171a;
-        --card: #1e2227;
-        --text: #e8e6e3;
-        --muted: #9aa0a6;
+        --bg: #131416;
+        --card: #1d1f22;
+        --text: #ebe7e1;
+        --muted: #9c968f;
+        --line: #2e3135;
         --accent: #6fc2a8;
+        --accent-soft: #1a2f29;
+        --php: #9ea1ff;
+        --php-soft: #23243d;
+        --html: #f09a6a;
+        --html-soft: #3a2519;
       }
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
       background: var(--bg);
       color: var(--text);
       font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      line-height: 1.6;
+      padding: 40px 16px 56px;
     }
-    .card {
-      width: 100%;
-      max-width: 440px;
-      background: var(--card);
-      border-radius: 20px;
-      padding: 40px 32px;
-      text-align: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    .wrap { max-width: 640px; margin: 0 auto; }
+
+    header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+    .avatar {
+      flex: none; width: 64px; height: 64px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      display: grid; place-items: center; font-size: 28px; font-weight: 700;
     }
-    .wave { font-size: 56px; display: inline-block; animation: wave 2s ease-in-out infinite; transform-origin: 70% 70%; }
-    @keyframes wave {
-      0%, 60%, 100% { transform: rotate(0); }
-      10%, 30% { transform: rotate(14deg); }
-      20% { transform: rotate(-8deg); }
-      40% { transform: rotate(-4deg); }
-      50% { transform: rotate(10deg); }
+    h1 { font-size: 26px; line-height: 1.3; }
+    header p { color: var(--muted); font-size: 15px; }
+
+    .section-title {
+      font-size: 13px; letter-spacing: .08em; color: var(--muted);
+      margin: 0 0 12px 4px;
     }
-    h1 { margin-top: 16px; font-size: 28px; }
-    p { margin-top: 10px; color: var(--muted); line-height: 1.7; }
-    button {
-      margin-top: 24px;
-      padding: 12px 28px;
-      border: none;
-      border-radius: 999px;
-      background: var(--accent);
-      color: #fff;
-      font-size: 16px;
-      cursor: pointer;
-      transition: transform .1s;
+    .list { display: grid; gap: 12px; }
+
+    a.item {
+      display: flex; gap: 16px; align-items: center;
+      background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+      padding: 18px; color: inherit; text-decoration: none;
+      transition: transform .15s, border-color .15s;
     }
-    button:active { transform: scale(0.96); }
-    #count { margin-top: 14px; font-size: 15px; min-height: 1.5em; }
-    footer { margin-top: 28px; font-size: 13px; color: var(--muted); }
+    a.item:hover { transform: translateY(-2px); border-color: var(--accent); }
+    a.item:active { transform: scale(.99); }
+    .emoji {
+      flex: none; width: 52px; height: 52px; border-radius: 14px;
+      background: var(--bg); display: grid; place-items: center; font-size: 28px;
+    }
+    .body { flex: 1; min-width: 0; }
+    .title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .title { font-size: 17px; font-weight: 700; }
+    .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+    .tag.php { background: var(--php-soft); color: var(--php); }
+    .tag.html { background: var(--html-soft); color: var(--html); }
+    .tag.new { background: var(--accent-soft); color: var(--accent); }
+    .desc { color: var(--muted); font-size: 14px; margin-top: 2px; }
+    .arrow { flex: none; color: var(--muted); font-size: 20px; }
+
+    footer { margin-top: 40px; text-align: center; color: var(--muted); font-size: 13px; }
   </style>
 </head>
 <body>
-  <main class="card">
-    <div class="wave">👋</div>
-    <h1>Hello，我是 asiamild！</h1>
-    <p>這是我的第一個網頁，<br>用 GitHub Pages 架設成功 🎉</p>
-    <button id="btn">點我試試看</button>
-    <div id="count"></div>
-    <footer>測試網頁 · 2026</footer>
-  </main>
-  <script>
-    let n = 0;
-    const msgs = ["你好！", "再點一次？", "網頁有在動喔 ✨", "成功了！"];
-    document.getElementById("btn").addEventListener("click", () => {
-      n++;
-      document.getElementById("count").textContent =
-        msgs[Math.min(n - 1, msgs.length - 1)] + `（已點 ${n} 次）`;
-    });
-  </script>
+  <div class="wrap">
+
+    <header>
+      <div class="avatar">A</div>
+      <div>
+        <h1>asiamild 的作品集</h1>
+        <p>我做的小網站和小工具，點進去玩玩看 👇</p>
+      </div>
+    </header>
+
+    <p class="section-title">作品列表</p>
+    <div class="list">
+
+      <!-- ===== 新作品就複製一個 <a class="item"> 區塊加在這裡 ===== -->
+
+      <a class="item" href="http://kphp.free.nf/gift.php">
+        <div class="emoji">🎁</div>
+        <div class="body">
+          <div class="title-row">
+            <span class="title">交換禮物抽籤</span>
+            <span class="tag new">NEW</span>
+            <span class="tag php">PHP</span>
+          </div>
+          <p class="desc">建立活動、邀請朋友、一鍵抽籤，每個人只知道自己要送給誰。</p>
+        </div>
+        <span class="arrow">›</span>
+      </a>
+
+      <a class="item" href="http://kphp.free.nf/">
+        <div class="emoji">🐘</div>
+        <div class="body">
+          <div class="title-row">
+            <span class="title">PHP 留言板</span>
+            <span class="tag php">PHP</span>
+          </div>
+          <p class="desc">我的第一個 PHP 網站，會依時間打招呼，還可以留言給我。</p>
+        </div>
+        <span class="arrow">›</span>
+      </a>
+
+      <a class="item" href="hello.html">
+        <div class="emoji">👋</div>
+        <div class="body">
+          <div class="title-row">
+            <span class="title">我的第一個網頁</span>
+            <span class="tag html">HTML</span>
+          </div>
+          <p class="desc">用 GitHub Pages 架起來的第一個測試網頁。</p>
+        </div>
+        <span class="arrow">›</span>
+      </a>
+
+    </div>
+
+    <footer>© 2026 asiamild</footer>
+  </div>
 </body>
 </html>
