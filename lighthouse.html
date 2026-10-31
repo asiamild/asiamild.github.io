@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>鹿嶼燈塔</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="一座 2019 年就停用的燈塔，每天晚上 19:42 還是會亮十秒。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=LXGW+WenKai+TC:wght@400;700&family=Noto+Serif+TC:wght@400;600;900&display=swap">
+<style>
+/* Layout: one night-sea column. A moonlit horizon with the lighthouse up top, a cold amber status terminal,
+   then the story unlocks downward as warm paper documents. The sky warms a little with every file opened,
+   until the last one ends at dawn. Single committed dark look. */
+:root {
+  --night: #08111f;
+  --deep: #0e1b2d;
+  --line: rgba(150, 180, 214, .18);
+  --ink: #dbe3ec;
+  --mute: #8d9db1;
+  --lamp: #ffc46b;
+  --lamp-soft: rgba(255, 196, 107, .14);
+  --warn: #ff9a73;
+  --paper: #ece2cb;
+  --paper-ink: #2f2a24;
+  --paper-mute: #7d705c;
+  --paper-rule: rgba(84, 110, 150, .16);
+  --paper-blue: #22437a;
+  --stamp: #b2412f;
+  --f-serif: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --f-hand: "LXGW WenKai TC", "Kaiti TC", "BiauKai", "KaiTi", serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { background: var(--night); }
+body {
+  margin: 0;
+  background: var(--night);
+  color: var(--ink);
+  font-family: var(--f-serif);
+  font-size: 17px;
+  line-height: 1.85;
+  overflow-x: hidden;
+  transition: background-color 2s;
+}
+body.dawn { --night: #141220; --deep: #1c1a2b; }
+::selection { background: var(--lamp); color: #1b1408; }
+a { color: var(--lamp); }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--lamp); outline-offset: 3px; }
+
+/* ---------- hero ---------- */
+.hero { position: relative; height: clamp(330px, 56vw, 470px); overflow: hidden; }
+.hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.lh {
+  position: absolute; right: 13%; bottom: 25%; height: 58%; width: auto; overflow: visible;
+}
+.lh .glow { opacity: .06; transition: opacity .08s linear; }
+.lh.flash .glow { opacity: 1; }
+.lh .beam { opacity: 0; transform-origin: 60px 64px; transform-box: view-box; }
+body.beam-on .lh .beam { opacity: .85; animation: sweep 10s linear infinite; }
+body.beam-on .lh .glow { opacity: .85; }
+@keyframes sweep {
+  0%   { transform: scaleX(1);    opacity: .8; }
+  25%  { transform: scaleX(.03);  opacity: .15; }
+  50%  { transform: scaleX(-1);   opacity: .8; }
+  75%  { transform: scaleX(-.03); opacity: .15; }
+  100% { transform: scaleX(1);    opacity: .8; }
+}
+.hero-title {
+  position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); top: 28px;
+  padding-right: 16px; max-width: 70%;
+}
+.hero-title .eyebrow { color: var(--mute); }
+.hero-title h1 {
+  margin: 6px 0 0; font-weight: 900; font-size: clamp(38px, 8vw, 64px); line-height: 1.1;
+  letter-spacing: .14em; color: var(--ink); text-shadow: 0 2px 24px rgba(0,0,0,.5);
+}
+
+.eyebrow {
+  font-family: var(--f-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--lamp); margin: 0;
+}
+
+/* ---------- column ---------- */
+.wrap {
+  max-width: 680px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 8px 40px;
+  display: grid; gap: 28px;
+}
+.lede { margin: 0; font-size: clamp(20px, 4.6vw, 25px); line-height: 1.7; text-wrap: balance; }
+.lede em { font-style: normal; color: var(--lamp); }
+
+/* ---------- status board ---------- */
+.board {
+  font-family: var(--f-mono); font-size: 13px; line-height: 1.75;
+  background: var(--deep); border: 1px solid var(--line); border-radius: 6px;
+  font-variant-numeric: tabular-nums; overflow: hidden;
+}
+.board-bar {
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 10px 14px; border-bottom: 1px solid var(--line); color: var(--mute); letter-spacing: .06em;
+}
+.live { color: var(--lamp); }
+.live::before { content: "●"; margin-right: 6px; animation: blink 1.6s steps(1) infinite; }
+@keyframes blink { 50% { opacity: .2; } }
+.board-sec { padding: 12px 14px; border-bottom: 1px dashed var(--line); }
+.board-sec:last-child { border-bottom: 0; }
+.kv { display: grid; grid-template-columns: 5.5em 1fr; gap: 0 12px; margin: 0; }
+.kv dt { color: var(--mute); }
+.kv dd { margin: 0; min-width: 0; }
+.sec-label { color: var(--mute); margin: 0 0 6px; letter-spacing: .08em; }
+.logrows { margin: 0; padding: 0; list-style: none; }
+.logrows li { display: flex; flex-wrap: wrap; gap: 0 14px; }
+.logrows .d { color: var(--ink); min-width: 9.5em; }
+.logrows .s { color: var(--mute); }
+.logrows .t { color: var(--lamp); }
+.logrows .w { color: var(--warn); }
+.logrows li.visitor .t { color: var(--ink); }
+.next { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; }
+.next b { color: var(--lamp); font-weight: 500; font-size: 18px; }
+.foot-note { color: var(--mute); margin: 0; }
+.now-banner {
+  margin: 0; padding: 10px 14px; background: var(--lamp-soft); color: var(--lamp);
+  border-bottom: 1px solid var(--line);
+}
+
+/* ---------- paper slip + locks ---------- */
+.slip {
+  background: var(--paper); color: var(--paper-ink); font-family: var(--f-hand);
+  padding: 16px 20px; border-radius: 2px; transform: rotate(-1.2deg);
+  box-shadow: 0 10px 26px rgba(0,0,0,.45); max-width: 440px; margin: 0;
+  font-size: 19px; line-height: 1.7;
+}
+.slip small { display: block; font-family: var(--f-mono); font-size: 11px; color: var(--paper-mute); letter-spacing: .08em; margin-bottom: 4px; }
+.lock {
+  border: 1px solid var(--line); border-radius: 6px; padding: 18px 18px 16px;
+  background: linear-gradient(180deg, var(--deep), transparent);
+  display: grid; gap: 12px;
+}
+.lock .q { margin: 0; font-size: 19px; font-weight: 600; text-wrap: balance; }
+.lock form { display: flex; gap: 10px; flex-wrap: wrap; }
+.lock input {
+  flex: 1 1 180px; min-width: 0; font-size: 18px; letter-spacing: .08em;
+  background: transparent; border: 0; border-bottom: 1px solid var(--mute);
+  padding: 8px 2px; color: var(--ink); font-family: var(--f-mono);
+}
+.lock input:focus { outline: none; border-bottom-color: var(--lamp); }
+.lock .msg { margin: 0; min-height: 1.6em; font-size: 15px; color: var(--warn); }
+.lock .msg.good { color: var(--lamp); }
+.lock.shake { animation: shake .4s; }
+@keyframes shake { 20%,60% { transform: translateX(-6px);} 40%,80% { transform: translateX(6px);} }
+.lock.solved { opacity: .55; }
+.lock.solved form, .lock.solved .hint-btn { display: none; }
+.hints { margin: 0; padding-left: 1.4em; color: var(--mute); font-size: 15px; display: grid; gap: 6px; }
+.hints li[hidden] { display: none; }
+.hint-btn { justify-self: start; }
+
+.btn {
+  appearance: none; cursor: pointer; border: 1px solid var(--lamp); color: var(--lamp);
+  background: transparent; border-radius: 999px; padding: 8px 18px; font-size: 15px;
+  font-family: var(--f-serif); transition: background .2s, color .2s;
+}
+.btn:hover { background: var(--lamp-soft); }
+.btn:active { transform: translateY(1px); }
+.btn.solid { background: var(--lamp); color: #22180a; font-weight: 600; }
+.btn.solid:hover { background: #ffd28a; }
+.btn.ghost { border-color: var(--line); color: var(--mute); }
+
+/* ---------- chapters ---------- */
+#chapters { display: grid; gap: 72px; margin-top: 36px; }
+.chapter { display: grid; gap: 26px; }
+.chapter.enter { animation: rise 1.4s ease-out both; }
+@keyframes rise { from { opacity: .15; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+.ch-head { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 28px; }
+.ch-head h2 { margin: 0; font-size: clamp(28px, 6vw, 36px); font-weight: 900; letter-spacing: .06em; line-height: 1.3; text-wrap: balance; }
+.ch-sub { margin: 0; color: var(--mute); font-size: 15.5px; }
+.hand { font-family: var(--f-hand); }
+
+.notebook {
+  background:
+    repeating-linear-gradient(180deg, transparent 0 33px, var(--paper-rule) 33px 34px),
+    var(--paper);
+  color: var(--paper-ink); font-family: var(--f-hand); font-size: 19px; line-height: 34px;
+  padding: 22px clamp(18px, 5vw, 36px) 26px clamp(26px, 7vw, 48px);
+  border-radius: 3px; box-shadow: 0 16px 40px rgba(0,0,0,.5);
+  position: relative; display: grid; gap: 22px;
+}
+.notebook::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: clamp(14px, 4vw, 30px);
+  border-left: 1px solid rgba(178, 65, 47, .35);
+}
+.entry p, .v-entry p, .letter p { margin: 0; }
+.entry .meta, .v-entry .meta {
+  font-family: var(--f-mono); font-size: 12px; color: var(--paper-mute); letter-spacing: .04em;
+}
+.entry-key { font-weight: 700; }
+
+.morse-sheet {
+  margin: 0; background: #f5efe0; color: var(--paper-ink); font-family: var(--f-hand);
+  padding: 18px 20px 20px; border-radius: 3px; transform: rotate(.8deg);
+  box-shadow: 0 10px 26px rgba(0,0,0,.4); max-width: 520px; justify-self: center; width: 100%;
+}
+.morse-sheet figcaption { font-family: var(--f-mono); font-size: 11px; color: var(--paper-mute); letter-spacing: .06em; }
+.sheet-title { margin: 6px 0 10px; font-size: 21px; font-weight: 700; color: var(--paper-blue); }
+.morse-grid {
+  list-style: none; margin: 0; padding: 0; display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(82px, 1fr)); gap: 4px 10px; font-size: 18px;
+}
+.morse-grid li { white-space: nowrap; letter-spacing: .08em; }
+.morse-grid b { display: inline-block; width: 1.3em; color: var(--stamp); }
+.sheet-note { margin: 12px 0 0; color: var(--paper-blue); font-size: 17px; }
+
+.cam { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: #050a12; }
+.cam-bar { display: flex; justify-content: space-between; padding: 8px 12px; font-family: var(--f-mono); font-size: 12px; color: var(--mute); }
+.cam-rec { color: var(--warn); }
+.cam-view {
+  position: relative; aspect-ratio: 16 / 7; max-width: 100%;
+  background: radial-gradient(ellipse at 50% 120%, #0f2033, #03070d 70%);
+  display: grid; place-items: center;
+}
+.cam-view::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(180deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px);
+}
+.cam-lamp {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: radial-gradient(circle, #3a3424 0 30%, #14120c 70%);
+  transition: background .05s, box-shadow .05s;
+}
+.cam-lamp.on {
+  background: radial-gradient(circle, #fffbe8 0 26%, var(--lamp) 50%, rgba(255,196,107,0) 72%);
+  box-shadow: 0 0 60px 30px rgba(255, 196, 107, .55), 0 0 160px 60px rgba(255, 196, 107, .2);
+}
+.cam-tc { position: absolute; left: 12px; bottom: 8px; font-family: var(--f-mono); font-size: 12px; color: var(--mute); font-variant-numeric: tabular-nums; }
+.cam-tape {
+  margin: 0; padding: 10px 14px 0; min-height: 2.6em; font-family: var(--f-mono); font-size: 20px;
+  letter-spacing: .14em; color: var(--lamp); word-break: break-all;
+}
+.cam-ctl { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding: 10px 14px 14px; }
+.chk { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; color: var(--mute); cursor: pointer; }
+.chk input { accent-color: var(--lamp); width: 16px; height: 16px; }
+
+.box-note { margin: 0; color: var(--mute); }
+.box-note .hand { color: var(--ink); font-size: 19px; }
+.letters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 22px; }
+.letter {
+  position: relative; background: var(--paper); color: var(--paper-ink);
+  font-family: var(--f-hand); font-size: 18px; line-height: 1.85;
+  padding: 18px 20px 22px; border-radius: 2px; box-shadow: 0 12px 30px rgba(0,0,0,.45);
+  display: grid; gap: 8px; align-content: start;
+}
+.tilt-a { transform: rotate(-.9deg); } .tilt-b { transform: rotate(.7deg); } .tilt-c { transform: rotate(-.4deg); }
+.l-date { font-family: var(--f-mono); font-size: 12px; color: var(--paper-mute); letter-spacing: .05em; }
+.l-to { font-size: 14px; color: var(--paper-mute); }
+.l-sign { justify-self: end; margin-top: 6px !important; }
+.stamp {
+  position: absolute; right: 12px; top: 10px; font-family: var(--f-serif); font-size: 12px; font-weight: 900;
+  color: var(--stamp); border: 2px solid var(--stamp); border-radius: 50%; width: 52px; height: 52px;
+  display: grid; place-items: center; transform: rotate(14deg); opacity: .7; letter-spacing: .05em;
+}
+.letter-last { max-width: 520px; justify-self: center; width: 100%; transform: rotate(.4deg); }
+
+.syslog {
+  font-family: var(--f-mono); font-size: 13px; line-height: 1.7; background: var(--deep);
+  border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; display: grid; gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.syslog p { margin: 0; display: flex; flex-wrap: wrap; gap: 0 12px; }
+.syslog .d { min-width: 6.6em; color: var(--ink); }
+.syslog .dim { color: var(--mute); }
+.syslog .hl { color: var(--ink); background: rgba(255,154,115,.08); margin: 4px -14px; padding: 6px 14px; }
+.syslog .ok { color: var(--lamp); } .syslog .warn { color: var(--warn); }
+.bridge { margin: 0; }
+
+.book {
+  --bx: 50%; --by: 50%;
+  position: relative; background: var(--paper); color: var(--paper-blue); font-family: var(--f-hand);
+  font-size: 19px; line-height: 1.9; padding: 56px clamp(18px, 5vw, 34px) 30px; border-radius: 3px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.5); display: grid; gap: 22px; transition: background-color .6s, color .6s;
+}
+.torch-btn { position: absolute; top: 14px; right: 14px; border-color: var(--paper-mute); color: var(--paper-ink); font-size: 14px; padding: 5px 14px; }
+.torch-btn:hover { background: rgba(0,0,0,.05); }
+.book.torch {
+  background:
+    radial-gradient(circle 120px at var(--bx) var(--by), rgba(255, 236, 190, .95), rgba(236, 226, 203, .35) 70%, transparent 100%),
+    #2a251d;
+  color: rgba(34, 67, 122, .35);
+  cursor: crosshair;
+}
+.book.torch .torch-btn { color: var(--paper); border-color: var(--paper-mute); }
+.book.torch .meta { color: rgba(125,112,92,.4); }
+.secret { position: relative; margin-top: 14px !important; }
+.secret-base { color: rgba(47, 42, 36, .07); }
+.book.torch .secret-base { color: transparent; }
+.secret-lit {
+  position: absolute; left: 0; top: 0; right: 0; color: #2b2620; opacity: 0; pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle 110px at var(--mx, -999px) var(--my, -999px), #000 35%, transparent 100%);
+          mask-image: radial-gradient(circle 110px at var(--mx, -999px) var(--my, -999px), #000 35%, transparent 100%);
+}
+.book.torch .secret-lit { opacity: 1; }
+.secret-base::selection { background: #2b2620; color: var(--paper); }
+
+.letter-reply { color: var(--paper-blue); max-width: 560px; justify-self: center; width: 100%; font-size: 19px; gap: 14px; padding: 26px 26px 30px; }
+
+.ritual { display: grid; gap: 10px; padding-top: 12px; }
+.ritual p { margin: 0; }
+.r-lead { font-size: 20px; }
+.r-ask { font-size: 21px; font-weight: 600; color: var(--lamp); margin-top: 8px !important; text-wrap: balance; }
+.r-form { display: grid; gap: 8px; margin-top: 14px; }
+.r-form label { font-size: 14px; color: var(--mute); font-family: var(--f-mono); letter-spacing: .06em; }
+.r-form input, .r-form textarea {
+  width: 100%; min-width: 0; background: var(--deep); border: 1px solid var(--line); border-radius: 6px;
+  padding: 10px 12px; font-size: 17px; color: var(--ink); font-family: var(--f-hand); resize: vertical;
+}
+.r-form input:focus, .r-form textarea:focus { outline: none; border-color: var(--lamp); }
+.r-privacy { font-size: 13px; color: var(--mute); }
+.btn-lamp { justify-self: start; margin-top: 6px; padding: 10px 34px; font-size: 18px; }
+.r-done { display: grid; gap: 10px; border: 1px solid var(--lamp); border-radius: 6px; padding: 18px; background: var(--lamp-soft); }
+.r-done p { margin: 0; }
+.r-done .big { font-size: 22px; color: var(--lamp); font-weight: 600; }
+
+/* ---------- finale ---------- */
+.finale {
+  position: fixed; inset: 0; z-index: 50; background: #02050a; color: var(--ink);
+  display: grid; place-items: center; overflow: hidden;
+  padding: env(safe-area-inset-top, 0px) max(16px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(16px, env(safe-area-inset-left, 0px));
+}
+.finale-sky { position: absolute; inset: 0; pointer-events: none; }
+.f-beam {
+  position: absolute; left: 50%; top: 24%; width: 160vmax; height: 34vmax; margin-top: -17vmax;
+  transform-origin: 0 50%; pointer-events: none;
+  background: linear-gradient(90deg, rgba(255,220,150,.55), rgba(255,200,120,.08) 60%, transparent);
+  clip-path: polygon(0 48%, 100% 0, 100% 100%, 0 52%);
+  animation: fsweep 7s linear infinite; opacity: 0; transition: opacity 2s;
+}
+.finale.lit .f-beam { opacity: 1; }
+@keyframes fsweep {
+  0% { transform: scaleX(1); } 25% { transform: scaleX(.02); } 50% { transform: scaleX(-1); }
+  75% { transform: scaleX(-.02); } 100% { transform: scaleX(1); }
+}
+.f-lamp {
+  position: absolute; left: 50%; top: 24%; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%;
+  background: #fff8e2; box-shadow: 0 0 40px 18px rgba(255,200,120,.0); transition: box-shadow 2.4s;
+}
+.finale.lit .f-lamp { box-shadow: 0 0 80px 40px rgba(255,200,120,.6), 0 0 240px 120px rgba(255,180,100,.18); }
+.f-lines {
+  position: relative; z-index: 1; max-width: 560px; width: 100%; margin-top: 18vh;
+  display: grid; gap: 14px; text-align: center; font-size: clamp(18px, 4.4vw, 22px); line-height: 1.8;
+}
+.f-lines p { margin: 0; animation: fin 2.2s ease-out both; text-wrap: balance; }
+.f-lines .quote { font-family: var(--f-hand); color: var(--lamp); font-size: 1.1em; }
+.f-lines .strong { font-weight: 900; color: #fff3d6; }
+@keyframes fin { from { opacity: 0; filter: blur(6px); } to { opacity: 1; filter: none; } }
+.f-skip { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 2; font-family: var(--f-mono); font-size: 12px; color: var(--mute); background: none; border: 0; cursor: pointer; }
+.f-close { justify-self: center; margin-top: 18px; animation: fin 2s ease-out both; }
+
+/* ---------- misc ---------- */
+.sound {
+  position: fixed; z-index: 20; top: calc(12px + env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px));
+  font-family: var(--f-mono); font-size: 12px; letter-spacing: .06em; color: var(--mute);
+  background: rgba(8,17,31,.6); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+.sound[aria-pressed="true"] { color: var(--lamp); border-color: var(--lamp); }
+.site-foot {
+  max-width: 680px; margin: 40px auto 0; padding-block: 24px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  border-top: 1px solid var(--line); color: var(--mute); font-size: 13px; display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: space-between; align-items: center;
+}
+.site-foot a { color: var(--mute); }
+.epilogue { text-align: center; color: var(--mute); font-size: 15px; display: grid; gap: 4px; margin-top: 24px; }
+.epilogue p { margin: 0; }
+.epilogue b { color: var(--lamp); font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  body.beam-on .lh .beam { opacity: .5; transform: none; }
+}
+</style>
+</head>
+<body>
+
+<button type="button" class="sound" id="sound" aria-pressed="false">海聲 OFF</button>
+
+<header class="hero" aria-label="夜裡的鹿嶼燈塔">
+  <canvas id="sky"></canvas>
+  <svg class="lh" id="lh" viewBox="0 0 120 300" aria-hidden="true">
+    <defs>
+      <radialGradient id="g-glow"><stop offset="0" stop-color="#fffbe8"/><stop offset=".25" stop-color="#ffd58a" stop-opacity=".9"/><stop offset="1" stop-color="#ffc46b" stop-opacity="0"/></radialGradient>
+      <linearGradient id="g-beam" x1="0" x2="1"><stop offset="0" stop-color="#ffe2a8" stop-opacity=".75"/><stop offset=".5" stop-color="#ffd58a" stop-opacity=".18"/><stop offset="1" stop-color="#ffd58a" stop-opacity="0"/></linearGradient>
+      <linearGradient id="g-tower" x1="0" x2="1"><stop offset="0" stop-color="#1b2433"/><stop offset=".55" stop-color="#2c3a50"/><stop offset="1" stop-color="#121a26"/></linearGradient>
+    </defs>
+    <polygon class="beam" points="60,64 760,-40 760,168" fill="url(#g-beam)"/>
+    <path d="M-30 300 Q 10 268 34 276 Q 60 262 86 274 Q 118 266 150 300 Z" fill="#05090f"/>
+    <polygon points="44,276 76,276 70,96 50,96" fill="url(#g-tower)"/>
+    <polygon points="46.6,226 73.4,226 72.6,204 47.4,204" fill="#3d1f22" opacity=".85"/>
+    <polygon points="48.6,160 71.4,160 70.8,140 49.2,140" fill="#3d1f22" opacity=".85"/>
+    <rect x="57" y="246" width="6" height="12" fill="#0a0f17"/>
+    <rect x="58" y="178" width="4" height="7" fill="#0a0f17"/>
+    <rect x="58.4" y="116" width="3.2" height="6" fill="#0a0f17"/>
+    <rect x="44" y="90" width="32" height="6" fill="#1a2232"/>
+    <rect x="42" y="88" width="36" height="2" fill="#2c3a50"/>
+    <rect x="50" y="56" width="20" height="32" fill="#141c29"/>
+    <rect x="52" y="58" width="16" height="28" fill="#2a2a22"/>
+    <path d="M47 56 L60 42 L73 56 Z" fill="#1a2232"/>
+    <rect x="59" y="36" width="2" height="7" fill="#1a2232"/>
+    <circle class="glow" cx="60" cy="68" r="34" fill="url(#g-glow)"/>
+  </svg>
+  <div class="hero-title">
+    <p class="eyebrow">LUYU LIGHTHOUSE · 1987 — 2019</p>
+    <h1>鹿嶼燈塔</h1>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="lede">本燈塔已於 2019 年停用。<br>但每天晚上 <em>七點四十二分</em>，它還是會亮十秒。</p>
+
+  <section class="board" id="board" aria-label="燈塔自動回報系統">
+    <div class="board-bar"><span>鹿嶼燈塔 · 自動回報系統 v2.3</span><span class="live">連線中</span></div>
+    <p class="now-banner" id="now-banner" hidden>19:42 · 此刻，鹿嶼燈塔正在點燈。看看上面。</p>
+    <div class="board-sec">
+      <dl class="kv">
+        <dt>航標編號</dt><dd>TW-LY-0417</dd>
+        <dt>燈質</dt><dd>Fl W 10s（每 10 秒一閃白光）</dd>
+        <dt>燈高</dt><dd>41.5 m ｜ 光程 22 浬</dd>
+        <dt>狀態</dt><dd>停用。2019.06.30 起由自動航標取代</dd>
+        <dt>守燈人</dt><dd id="keeper">陳樹德（1987 年到任）</dd>
+      </dl>
+    </div>
+    <div class="board-sec">
+      <p class="sec-label">異常紀錄 · 最近七晚</p>
+      <ul class="logrows" id="logrows"></ul>
+    </div>
+    <div class="board-sec next">
+      <span class="sec-label" style="margin:0">下一次異常點燈</span>
+      <b id="countdown">--:--:--</b>
+      <span class="foot-note" id="next-when"></span>
+    </div>
+    <div class="board-sec">
+      <p class="foot-note">附註：鹿嶼—本島交通船，末班 19:42 開出，已於 2010.01 停駛。<br>⚠ 已停用之燈塔不應發光。如有目擊，請通報航務中心。</p>
+    </div>
+  </section>
+
+  <p class="slip"><small>在燈室門縫撿到的紙條</small>日誌鎖在鐵櫃裡。開啟碼，是那天晚上，船開走的時間。</p>
+
+  <div class="lock" id="lock0" data-q="鐵櫃的開啟碼是？" data-ph="四個數字">
+    <ol class="hints">
+      <li>看看最近七晚的紀錄。燈每天都在同一個時間亮，跟日落時間一點關係都沒有。</li>
+      <li>系統最下面的附註，交通船末班是幾點開出的？</li>
+      <li>答案是 1942。</li>
+    </ol>
+  </div>
+
+  <div id="chapters"></div>
+  <div class="epilogue" id="epilogue" hidden></div>
+</main>
+
+<footer class="site-foot">
+  <span>鹿嶼燈塔是虛構的地方，守燈人也是。<br>那句沒說出口的話，可能不是。</span>
+  <span><button type="button" class="btn ghost" id="reset">重新開始</button></span>
+</footer>
+
+<div class="finale" id="finale" hidden>
+  <canvas class="finale-sky" id="fsky"></canvas>
+  <div class="f-beam" aria-hidden="true"></div>
+  <div class="f-lamp" aria-hidden="true"></div>
+  <div class="f-lines" id="f-lines" aria-live="polite"></div>
+  <button type="button" class="f-skip" id="f-skip">點一下畫面，下一句 ›</button>
+</div>
+
+<script>
+(() => {
+'use strict';
+const CH = ["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"];
+const STORE = 'luyu-lighthouse-v1';
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+/* ---------- storage ---------- */
+let state = { answers: [], lamps: [] };
+try { const raw = localStorage.getItem(STORE); if (raw) state = Object.assign(state, JSON.parse(raw)); } catch (e) {}
+const save = () => { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} };
+
+/* ---------- cipher: the answer is the key ---------- */
+function h32(str, seed) {
+  let h = (0x811c9dc5 ^ Math.imul(seed, 0x9e3779b1)) >>> 0;
+  for (const b of new TextEncoder().encode(str)) { h ^= b; h = Math.imul(h, 0x01000193) >>> 0; }
+  return h >>> 0;
+}
+function stream(key) {
+  let a = h32(key, 1), b = h32(key, 2), c = h32(key, 3), d = h32(key, 4);
+  if (!(a | b | c | d)) a = 1;
+  return () => { const t = a ^ (a << 11); a = b; b = c; c = d; d = (d ^ (d >>> 19)) ^ (t ^ (t >>> 8)); return d >>> 0; };
+}
+function open(b64, key) {
+  const bin = atob(b64); const out = new Uint8Array(bin.length); const r = stream(key); let w = 0;
+  for (let i = 0; i < bin.length; i++) { if (i % 4 === 0) w = r(); out[i] = bin.charCodeAt(i) ^ ((w >>> ((i % 4) * 8)) & 255); }
+  const txt = new TextDecoder().decode(out);
+  return txt.startsWith('LUYU|') ? txt.slice(5) : null;
+}
+const T = { '该': '該', '赶': '趕', '你': '妳', '说': '說', '説': '說', '陈': '陳', '么': '麼', '儿': '兒' };
+function norm(s) {
+  s = (s || '').normalize('NFKC').toUpperCase();
+  s = [...s].map(c => T[c] || c).join('');
+  return s.replace(/[^0-9A-Z㐀-鿿]/g, '');
+}
+function canon(stage, s) {
+  let n = norm(s);
+  if (stage === 3) { if (/女兒$/.test(n)) return '禾'; n = n.replace(/^陳?小?/, ''); }
+  return n;
+}
+const keyFor = (answers) => answers.join('|');
+
+/* ---------- dates ---------- */
+const pad = (n) => String(n).padStart(2, '0');
+const WD = '日一二三四五六';
+const fmt = (d) => `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
+function dayOffset(n) { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + n); return d; }
+function sunset(d) {
+  const start = new Date(d.getFullYear(), 0, 0); const doy = Math.floor((d - start) / 864e5);
+  const m = Math.round(18 * 60 + 52 * Math.sin(2 * Math.PI * (doy - 80) / 365));
+  return `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+}
+function fillDates(root) { $$('[data-date]', root).forEach(el => { el.textContent = fmt(dayOffset(+el.dataset.date)); }); }
+
+/* ---------- board ---------- */
+function renderBoard() {
+  const now = new Date(); const after = now.getHours() * 60 + now.getMinutes() >= 19 * 60 + 43;
+  const rows = []; let start = after ? 0 : -1;
+  const lamps = state.lamps || [];
+  for (let i = start; i > start - 7; i--) {
+    const d = dayOffset(i);
+    const lampToday = lamps.filter(l => l.date === fmt(d));
+    lampToday.forEach(l => rows.push(`<li class="visitor"><span class="d">${fmt(d)} (${WD[d.getDay()]})</span><span class="t">訪客點燈 · 給「${esc(l.to)}」</span><span class="w" style="color:var(--lamp)">✓</span></li>`));
+    rows.push(`<li><span class="d">${fmt(d)} (${WD[d.getDay()]})</span><span class="s">日落 ${sunset(d)}</span><span class="t">19:42:00 主燈手動點亮 · 閃 10 次</span><span class="w">⚠</span></li>`);
+  }
+  $('#logrows').innerHTML = rows.join('');
+  const ks = $$('#chapters [data-keeper]');
+  $('#keeper').textContent = ks.length ? ks[ks.length - 1].dataset.keeper : '陳樹德（1987 年到任）';
+}
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+let lastFlashMinute = '';
+function tick() {
+  const now = new Date();
+  const target = new Date(now); target.setHours(19, 42, 0, 0);
+  const inMinute = now.getHours() === 19 && now.getMinutes() === 42;
+  if (now > target && !inMinute) target.setDate(target.getDate() + 1);
+  $('#now-banner').hidden = !inMinute;
+  if (inMinute) {
+    $('#countdown').textContent = '點燈中';
+    $('#next-when').textContent = '';
+    const key = fmt(now);
+    if (lastFlashMinute !== key) { lastFlashMinute = key; flashCode('.... --- -- .', 300, null); }
+  } else {
+    const s = Math.floor((target - now) / 1000);
+    $('#countdown').textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`;
+    $('#next-when').textContent = (target.getDate() === now.getDate() ? '今晚' : '明晚') + ' 19:42（你的當地時間）';
+  }
+}
+
+/* ---------- sound ---------- */
+const Sound = {
+  ctx: null, master: null, beepGain: null, on: false,
+  init() {
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
+    const ctx = this.ctx = new AC();
+    this.master = ctx.createGain(); this.master.gain.value = 0; this.master.connect(ctx.destination);
+    const len = ctx.sampleRate * 4; const buf = ctx.createBuffer(1, len, ctx.sampleRate); const data = buf.getChannelData(0);
+    let last = 0; for (let i = 0; i < len; i++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; data[i] = last * 3.2; }
+    const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 520;
+    const swell = ctx.createGain(); swell.gain.value = .55;
+    const lfo = ctx.createOscillator(); lfo.frequency.value = .09; const lfoAmt = ctx.createGain(); lfoAmt.gain.value = .4;
+    lfo.connect(lfoAmt); lfoAmt.connect(swell.gain);
+    src.connect(lp); lp.connect(swell); swell.connect(this.master); src.start(); lfo.start();
+    const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.value = 640;
+    this.beepGain = ctx.createGain(); this.beepGain.gain.value = 0; osc.connect(this.beepGain); this.beepGain.connect(this.master); osc.start();
+    return true;
+  },
+  toggle() {
+    if (!this.ctx && !this.init()) return;
+    this.on = !this.on; this.ctx.resume();
+    this.master.gain.setTargetAtTime(this.on ? .5 : 0, this.ctx.currentTime, .4);
+  },
+  beep(on) { if (!this.ctx || !this.on) return; this.beepGain.gain.setTargetAtTime(on ? .22 : 0, this.ctx.currentTime, .008); }
+};
+$('#sound').addEventListener('click', (e) => {
+  Sound.toggle(); e.currentTarget.setAttribute('aria-pressed', Sound.on); e.currentTarget.textContent = Sound.on ? '海聲 ON' : '海聲 OFF';
+});
+
+/* ---------- morse flashing ---------- */
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+let flashRun = 0;
+async function flashCode(code, unit, hooks) {
+  const run = ++flashRun; const lh = $('#lh');
+  const set = (on) => { lh.classList.toggle('flash', on); Sound.beep(on); hooks && hooks.lamp(on); };
+  const letters = code.trim().split(/\s+/);
+  for (let li = 0; li < letters.length; li++) {
+    for (let si = 0; si < letters[li].length; si++) {
+      if (run !== flashRun) { set(false); return false; }
+      const dash = letters[li][si] === '-';
+      set(true); hooks && hooks.mark(dash ? '—' : '·');
+      await sleep(unit * (dash ? 3 : 1)); set(false);
+      await sleep(unit);
+    }
+    hooks && hooks.mark(li < letters.length - 1 ? ' / ' : '');
+    await sleep(unit * 2);
+  }
+  return run === flashRun;
+}
+
+function initCam(root) {
+  const cam = $('.cam', root); if (!cam) return;
+  const lamp = $('.cam-lamp', cam), tape = $('.cam-tape', cam), tc = $('.cam-tc', cam), btn = $('.cam-play', cam);
+  const slow = $('.cam-slow', cam), note = $('.cam-note', cam);
+  btn.addEventListener('click', async () => {
+    tape.textContent = ''; btn.textContent = '播放中…'; let flashes = 0; const t0 = performance.now();
+    const timer = setInterval(() => { const s = (performance.now() - t0) / 1000; tc.textContent = `昨晚 19:42:${pad(Math.floor(s))}.${Math.floor((s % 1) * 10)}`; }, 100);
+    const done = await flashCode(cam.dataset.code, slow.checked ? 600 : 300, {
+      lamp: (on) => { lamp.classList.toggle('on', on); if (on) flashes++; },
+      mark: (m) => { if (note.checked) tape.textContent += m; }
+    });
+    clearInterval(timer);
+    if (done) { btn.textContent = '再看一次'; if (!note.checked) tape.textContent = `錄影結束 · 閃爍 ${flashes} 次`; }
+  });
+}
+
+function initTorch(root) {
+  const book = $('.book', root); if (!book) return;
+  const btn = $('.torch-btn', book);
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation(); const on = book.classList.toggle('torch');
+    btn.setAttribute('aria-pressed', on); btn.textContent = on ? '放下手電筒' : '拿起手電筒';
+    if (on) console.log('%c有些字，寫得很淡。', 'color:#ffc46b');
+  });
+  const move = (e) => {
+    if (!book.classList.contains('torch')) return;
+    const r = book.getBoundingClientRect();
+    book.style.setProperty('--bx', (e.clientX - r.left) + 'px'); book.style.setProperty('--by', (e.clientY - r.top) + 'px');
+    $$('.secret-lit', book).forEach(s => { const q = s.getBoundingClientRect(); s.style.setProperty('--mx', (e.clientX - q.left) + 'px'); s.style.setProperty('--my', (e.clientY - q.top) + 'px'); });
+  };
+  book.addEventListener('pointermove', move); book.addEventListener('pointerdown', move);
+}
+
+/* ---------- locks ---------- */
+const WRONG = ['鎖沒有動。', '燈沒有亮。再看一次。', '不是這個。', '海很安靜，什麼也沒發生。'];
+function buildLock(lock, stage) {
+  const hints = $('.hints', lock); const hintItems = hints ? $$('li', hints) : [];
+  hintItems.forEach(li => li.hidden = true);
+  const q = document.createElement('p'); q.className = 'q'; q.textContent = lock.dataset.q;
+  const form = document.createElement('form'); form.autocomplete = 'off';
+  const id = 'lock-input-' + stage;
+  form.innerHTML = `<label class="sr" for="${id}" style="position:absolute;left:-9999px">${esc(lock.dataset.q)}</label><input id="${id}" placeholder="${esc(lock.dataset.ph || '')}" autocapitalize="characters" spellcheck="false"><button class="btn solid" type="submit">開啟</button>`;
+  const msg = document.createElement('p'); msg.className = 'msg'; msg.setAttribute('aria-live', 'polite');
+  const hb = document.createElement('button'); hb.type = 'button'; hb.className = 'btn ghost hint-btn'; hb.textContent = '看一張便條（提示）';
+  let shown = 0, wrong = 0;
+  hb.addEventListener('click', () => {
+    if (shown < hintItems.length) { hintItems[shown].hidden = false; shown++; }
+    hb.textContent = shown >= hintItems.length ? '沒有更多便條了' : `再看一張便條（${shown}/${hintItems.length}）`;
+    if (shown >= hintItems.length) hb.disabled = true;
+  });
+  lock.prepend(q); lock.insertBefore(form, hints || null); lock.insertBefore(msg, hints || null); lock.appendChild(hb);
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = $('input', form); const a = canon(stage, input.value);
+    if (!a) return;
+    const html = open(CH[stage], keyFor([...state.answers, a]));
+    if (html === null) {
+      msg.className = 'msg'; msg.textContent = WRONG[wrong++ % WRONG.length];
+      if (wrong === 3 && shown === 0) msg.textContent += ' 卡住的話，可以看一張便條。';
+      lock.classList.remove('shake'); void lock.offsetWidth; lock.classList.add('shake');
+      return;
+    }
+    state.answers.push(a); save();
+    msg.className = 'msg good'; msg.textContent = '喀。打開了。';
+    lock.classList.add('solved'); input.blur();
+    flashCode('.', 260, null);
+    const sec = mount(html, stage + 1, true);
+    renderBoard(); setSky();
+    setTimeout(() => sec.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }), 500);
+  });
+}
+
+function mount(html, n, fresh) {
+  const holder = document.createElement('div'); holder.innerHTML = html.trim();
+  const sec = holder.firstElementChild; if (fresh) sec.classList.add('enter');
+  $('#chapters').appendChild(sec);
+  fillDates(sec); initCam(sec); initTorch(sec);
+  const lock = $('.lock', sec); if (lock) buildLock(lock, n);
+  if (n === 4) initRitual(sec);
+  return sec;
+}
+
+/* ---------- ritual + finale ---------- */
+function initRitual(sec) {
+  const form = $('#lamp-form', sec); const done = $('.r-done', sec);
+  const showDone = () => {
+    const l = state.lamps[state.lamps.length - 1]; if (!l) return;
+    form.hidden = true; done.hidden = false;
+    done.innerHTML = `<p class="big">給「${esc(l.to)}」的燈，已經點亮了。</p>${l.msg ? `<p class="hand" style="font-size:19px">「${esc(l.msg)}」</p>` : ''}<p>${esc(l.date)} 點燈 · 鹿嶼燈塔自動回報系統已記錄。</p><p style="color:var(--mute)">今晚 19:42，再回來看一次燈。</p><button type="button" class="btn" id="lamp-again">再點一盞</button>`;
+    $('#lamp-again', done).addEventListener('click', () => { done.hidden = true; form.hidden = false; form.reset(); $('#lamp-to', form).focus(); });
+  };
+  if (state.lamps.length) showDone();
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const to = $('#lamp-to', form).value.trim(); const msg = $('#lamp-msg', form).value.trim();
+    if (!to) return;
+    state.lamps.push({ to, msg, date: fmt(new Date()) }); save();
+    finale(to, msg, () => { showDone(); dawn(); renderBoard(); });
+  });
+}
+
+function finale(to, msg, after) {
+  const f = $('#finale'), lines = $('#f-lines'); lines.innerHTML = ''; f.hidden = false; f.classList.remove('lit');
+  document.body.style.overflow = 'hidden'; startFinaleSky();
+  const L = $$('#f-script li').filter(li => !(li.dataset.if === 'msg' && !msg))
+    .map(li => [li.textContent.replace('{to}', to).replace('{msg}', msg), li.dataset.c || '']);
+  let i = 0, timer = null, closed = false;
+  const next = () => {
+    clearTimeout(timer);
+    if (i === 0) { f.classList.add('lit'); Sound.beep(true); setTimeout(() => Sound.beep(false), 900); }
+    if (i < L.length) {
+      const p = document.createElement('p'); p.textContent = L[i][0]; if (L[i][1]) p.className = L[i][1]; lines.appendChild(p); i++;
+      timer = setTimeout(next, reduce ? 1200 : 3000);
+    } else if (!$('.f-close', lines)) {
+      const b = document.createElement('button'); b.className = 'btn solid f-close'; b.textContent = '好，我去說。';
+      b.addEventListener('click', (e) => { e.stopPropagation(); close(); });
+      lines.appendChild(b); b.focus({ preventScroll: true }); $('#f-skip').hidden = true;
+    }
+  };
+  const close = () => {
+    if (closed) return; closed = true; clearTimeout(timer);
+    f.hidden = true; document.body.style.overflow = ''; f.onclick = null; $('#f-skip').hidden = false; after();
+    setTimeout(() => $('#ritual').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }), 100);
+  };
+  f.onclick = () => next();
+  setTimeout(next, 900);
+}
+
+function dawn() {
+  document.body.classList.add('dawn', 'beam-on'); setSky();
+  const ep = $('#epilogue'); ep.hidden = false;
+  ep.innerHTML = '<p>鹿嶼燈塔 · 1987 — 2019 — <b>還亮著</b></p><p>今晚 19:42 打開這一頁，燈會為你閃一次。</p>';
+}
+
+/* ---------- sky ---------- */
+const SKY = [
+  ['#050b16', '#0d1c33', '#0a1626'],
+  ['#060d1a', '#14233d', '#0b1828'],
+  ['#0a0f20', '#22284a', '#0d192a'],
+  ['#100f24', '#3b2d52', '#101b2c'],
+  ['#1a1630', '#c27a5c', '#1c2232']
+];
+let skyStage = 0; let stars = []; let skyT = 0;
+function setSky() { skyStage = Math.min(state.answers.length, 4) + (document.body.classList.contains('dawn') ? 0 : 0); drawSky(); }
+const sky = $('#sky'); const sctx = sky.getContext('2d');
+function sizeSky() {
+  const dpr = Math.min(devicePixelRatio || 1, 2); const r = sky.getBoundingClientRect();
+  sky.width = r.width * dpr; sky.height = r.height * dpr; sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  stars = Array.from({ length: Math.round(r.width * r.height / 2600) }, () => ({ x: Math.random() * r.width, y: Math.random() * r.height * .72, r: Math.random() * 1.1 + .2, p: Math.random() * 6.28 }));
+  drawSky();
+}
+function drawSky() {
+  const w = sky.clientWidth, h = sky.clientHeight; if (!w) return;
+  const [top, hor, sea] = SKY[skyStage]; const hy = h * .75;
+  const g = sctx.createLinearGradient(0, 0, 0, hy); g.addColorStop(0, top); g.addColorStop(1, hor);
+  sctx.fillStyle = g; sctx.fillRect(0, 0, w, hy);
+  const starFade = skyStage >= 4 ? .35 : 1;
+  for (const s of stars) {
+    const a = (.55 + .45 * Math.sin(s.p + skyT * .0012)) * starFade * (1 - s.y / hy * .6);
+    sctx.fillStyle = `rgba(230,236,255,${a.toFixed(3)})`; sctx.beginPath(); sctx.arc(s.x, s.y, s.r, 0, 6.283); sctx.fill();
+  }
+  const mx = w * .5, my = h * .42;
+  const mg = sctx.createRadialGradient(mx, my, 0, mx, my, 60); mg.addColorStop(0, 'rgba(255,248,225,.35)'); mg.addColorStop(1, 'rgba(255,248,225,0)');
+  sctx.fillStyle = mg; sctx.beginPath(); sctx.arc(mx, my, 60, 0, 6.283); sctx.fill();
+  sctx.fillStyle = 'rgba(243,236,216,.92)'; sctx.beginPath(); sctx.arc(mx, my, 11, 0, 6.283); sctx.fill();
+  const sg = sctx.createLinearGradient(0, hy, 0, h); sg.addColorStop(0, sea); sg.addColorStop(1, '#03070d');
+  sctx.fillStyle = sg; sctx.fillRect(0, hy, w, h - hy);
+  for (let i = 0; i < 26; i++) {
+    const y = hy + 4 + i * i * .42; if (y > h) break;
+    const len = 6 + i * 2.2; const off = Math.sin(skyT * .0009 + i * 1.7) * (6 + i);
+    sctx.fillStyle = `rgba(255,244,214,${(.32 - i * .011).toFixed(3)})`; sctx.fillRect(mx - len / 2 + off, y, len, 1.2);
+  }
+  sctx.fillStyle = 'rgba(160,190,220,.10)'; sctx.fillRect(0, hy, w, 1);
+}
+let lastFrame = 0;
+function loop(t) { if (t - lastFrame > 60) { skyT = t; drawSky(); lastFrame = t; } requestAnimationFrame(loop); }
+
+const fsky = $('#fsky'); let fRun = false;
+function startFinaleSky() {
+  const c = fsky.getContext('2d'); const dpr = Math.min(devicePixelRatio || 1, 2);
+  fsky.width = innerWidth * dpr; fsky.height = innerHeight * dpr; c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = innerWidth, H = innerHeight, hy = H * .3;
+  const st = Array.from({ length: 140 }, () => ({ x: Math.random() * W, y: Math.random() * hy, r: Math.random() * 1.2 + .2, p: Math.random() * 6.28 }));
+  if (fRun) return; fRun = true;
+  const draw = (t) => {
+    if ($('#finale').hidden) { fRun = false; return; }
+    c.fillStyle = '#02050a'; c.fillRect(0, 0, W, H);
+    for (const s of st) { c.fillStyle = `rgba(230,236,255,${(.5 + .5 * Math.sin(s.p + t * .0015)).toFixed(2)})`; c.beginPath(); c.arc(s.x, s.y, s.r, 0, 6.283); c.fill(); }
+    for (let i = 0; i < 40; i++) { const y = hy + 10 + i * i * .5; if (y > H) break; c.fillStyle = `rgba(255,214,150,${(.16 - i * .004).toFixed(3)})`; const len = 10 + i * 4; c.fillRect(W / 2 - len / 2 + Math.sin(t * .001 + i) * (4 + i), y, len, 1.3); }
+    requestAnimationFrame(draw);
+  };
+  requestAnimationFrame(draw);
+}
+
+/* ---------- boot ---------- */
+function boot() {
+  renderBoard(); tick(); setInterval(tick, 1000);
+  buildLock($('#lock0'), 0);
+  let ok = true;
+  for (let i = 0; i < state.answers.length && ok; i++) {
+    const html = open(CH[i], keyFor(state.answers.slice(0, i + 1)));
+    if (html === null) { state.answers = state.answers.slice(0, i); save(); ok = false; break; }
+    mount(html, i + 1, false);
+    if (i === 0) $('#lock0').classList.add('solved');
+  }
+  $$('#chapters .lock').forEach((l, idx) => { if (idx < state.answers.length - 1) l.classList.add('solved'); });
+  if (state.answers.length >= 1) $('#lock0').classList.add('solved');
+  if (state.lamps.length && state.answers.length >= 4) dawn();
+  setSky(); sizeSky();
+  if (!reduce) requestAnimationFrame(loop);
+  addEventListener('resize', sizeSky);
+  const reset = $('#reset'); let armed = false;
+  reset.addEventListener('click', () => {
+    if (!armed) { armed = true; reset.textContent = '會清除所有進度。再按一次確定'; setTimeout(() => { armed = false; reset.textContent = '重新開始'; }, 4000); return; }
+    try { localStorage.removeItem(STORE); } catch (e) {}
+    location.reload();
+  });
+  const title = document.title;
+  document.addEventListener('visibilitychange', () => { document.title = document.hidden ? '燈還亮著。' : title; });
+  console.log('%c鹿嶼燈塔 · 維修通道', 'font:700 16px serif;color:#ffc46b');
+  console.log('你在看燈的背面。守燈人以前也常這樣，把燈拆開來看裡面。\n不過答案不在這裡：每一個檔案，都是用上一道鎖的答案加密的。\n卡住的話，每道鎖下面都有便條。');
+}
+boot();
+})();
+</script>
+
+<!-- 流量統計 GoatCounter（只記錄頁面路徑；你在頁面上寫的字不會被傳送） -->
+<script>window.goatcounter = { path: location.pathname || '/' };</script>
+<script data-goatcounter="https://asiamild.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
