@@ -178,6 +178,55 @@ body.done h1 .r { color: var(--lamp); }
 @keyframes glow { from { opacity: 0; filter: blur(8px); letter-spacing: .3em; } to { opacity: 1; filter: none; letter-spacing: .02em; } }
 .gift .from { margin: 0; color: var(--mute); font-size: 14px; }
 
+/* smash */
+.rant { color: var(--red) !important; font-family: var(--f-serif) !important; font-weight: 900; transition: font-size .2s, border-color .2s, box-shadow .2s; }
+.rant-meter { margin: 0; font-family: var(--f-mono); font-size: 12px; color: var(--mute); }
+.rant-meter b { color: var(--red); letter-spacing: 1px; }
+.arena {
+  position: relative; height: 360px; display: grid; place-items: center; overflow: hidden; border-radius: 10px;
+  background: radial-gradient(circle at 50% 62%, #1d2435, #0b0e14 70%); border: 1px solid var(--line);
+  touch-action: manipulation; user-select: none; -webkit-user-select: none;
+}
+.arena.quake { animation: quake .16s; }
+@keyframes quake { 25% { transform: translate(-5px, 3px); } 50% { transform: translate(4px, -4px); } 75% { transform: translate(-3px, -2px); } }
+.can-big { position: relative; width: 168px; height: 236px; border: 0; padding: 0; background: none; cursor: pointer; transition: transform .09s; -webkit-tap-highlight-color: transparent; }
+.can-big:focus-visible { outline: 2px solid var(--lamp); outline-offset: 8px; }
+.can-body {
+  position: absolute; inset: 0; border-radius: 22px / 14px; overflow: hidden; display: grid; place-items: center; padding: 34px 16px;
+  background: linear-gradient(90deg, #7d1525, #dc3a50 34%, #f27384 44%, #c22c41 60%, #6f1220);
+  box-shadow: inset 0 12px 0 #b02436, inset 0 -12px 0 #5e0f1b, 0 18px 40px rgba(0,0,0,.6);
+}
+.can-text { color: #fff; font-family: var(--f-serif); font-weight: 900; font-size: 15px; line-height: 1.5; text-align: center; overflow-wrap: anywhere; max-height: 100%; overflow: hidden; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+.cracks { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.cracks path { stroke: #0b0e14; stroke-width: 3; fill: none; opacity: 0; transition: opacity .1s; stroke-linecap: round; }
+.cracks path.on { opacity: .9; }
+.particle { position: absolute; left: 50%; top: 50%; font-family: var(--f-serif); font-weight: 900; color: var(--red); font-size: 22px; pointer-events: none; will-change: transform; white-space: nowrap; }
+.pop { position: absolute; font-family: var(--f-serif); font-weight: 900; color: #fff; font-size: 30px; pointer-events: none; text-shadow: 0 0 14px var(--red); }
+.flash { position: absolute; inset: 0; background: #fff; pointer-events: none; animation: flash .5s ease-out forwards; }
+@keyframes flash { from { opacity: .9; } to { opacity: 0; } }
+.heart-core { border: 0; background: none; cursor: pointer; font-family: var(--f-serif); font-weight: 900; font-size: 120px; line-height: 1; color: var(--lamp); text-shadow: 0 0 40px rgba(245,165,36,.8); animation: beat 1.4s ease-in-out infinite, appear 1.2s ease-out both; padding: 0; }
+@keyframes beat { 50% { transform: scale(1.06); } }
+@keyframes appear { from { opacity: 0; filter: blur(10px); } to { opacity: 1; filter: none; } }
+.heart-core.bonk { animation: bonk .35s; }
+@keyframes bonk { 30% { transform: scale(.9) rotate(-4deg); } 70% { transform: scale(1.08) rotate(3deg); } }
+.hits { position: absolute; left: 14px; top: 10px; font-family: var(--f-mono); font-size: 12px; color: var(--mute); }
+.hits b { color: var(--red); font-size: 18px; }
+.hp { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.hp i { display: block; height: 100%; width: 100%; background: var(--red); transition: width .12s; }
+.arena-tip { margin: 0; text-align: center; font-size: 14px; color: var(--mute); }
+.verdict .said { margin: 0; font-family: var(--f-serif); font-weight: 900; color: var(--ink); font-size: 18px; overflow-wrap: anywhere; transition: color .4s; }
+.verdict .said.muted { color: var(--mute); }
+.verdict .said-note { margin: 0; font-size: 13px; color: var(--mute); min-height: 1.4em; }
+.seal-zone { position: relative; min-height: 120px; display: grid; place-items: center; border: 1px dashed var(--line); border-radius: 8px; }
+.seal-zone .ph { color: var(--mute); font-size: 13px; }
+.seal {
+  font-family: var(--f-serif); font-weight: 900; font-size: 30px; color: var(--red); border: 4px double var(--red);
+  padding: 8px 16px; border-radius: 6px; letter-spacing: .1em; transform: rotate(-9deg); mix-blend-mode: screen;
+  animation: stampin .32s cubic-bezier(.2,1.6,.5,1) both; text-align: center; line-height: 1.3;
+}
+@keyframes stampin { from { transform: rotate(-9deg) scale(2.6); opacity: 0; } to { transform: rotate(-9deg) scale(1); opacity: .95; } }
+.stamps { display: flex; flex-wrap: wrap; gap: 10px; }
+
 /* ledger */
 details.ledger { border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; background: rgba(19,24,36,.6); }
 details.ledger summary { cursor: pointer; font-family: var(--f-mono); font-size: 13px; color: var(--mute); letter-spacing: .06em; }
@@ -335,6 +384,18 @@ const Sound = {
     if (!this.ctx || !this.on) return; const c = this.ctx, t = c.currentTime;
     [180, 263, 411].forEach((f, i) => { const o = c.createOscillator(), g = c.createGain(); o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(.12 / (i + 1), t); g.gain.exponentialRampToValueAtTime(.001, t + .35); o.connect(g); g.connect(this.out); o.start(t); o.stop(t + .4); });
   },
+  smash(power = 1) {
+    if (!this.ctx || !this.on) return; const c = this.ctx, t = c.currentTime;
+    const s = c.createBufferSource(); s.buffer = this.noiseBuf(); const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 700 + Math.random() * 1600; f.Q.value = .8;
+    const g = c.createGain(); g.gain.setValueAtTime(.55 * power, t); g.gain.exponentialRampToValueAtTime(.001, t + .22 + power * .2);
+    s.connect(f); f.connect(g); g.connect(this.out); s.start(t); s.stop(t + .6);
+    const o = c.createOscillator(), og = c.createGain(); o.frequency.setValueAtTime(140 * power, t); o.frequency.exponentialRampToValueAtTime(40, t + .18); og.gain.setValueAtTime(.7 * power, t); og.gain.exponentialRampToValueAtTime(.001, t + .25);
+    o.connect(og); og.connect(this.out); o.start(t); o.stop(t + .3);
+    [300 + Math.random() * 500, 900 + Math.random() * 700].forEach(fq => { const m = c.createOscillator(), mg = c.createGain(); m.type = 'square'; m.frequency.value = fq; mg.gain.setValueAtTime(.03 * power, t); mg.gain.exponentialRampToValueAtTime(.001, t + .12); m.connect(mg); mg.connect(this.out); m.start(t); m.stop(t + .15); });
+  },
+  noiseBuf() { if (this._nb) return this._nb; const c = this.ctx, len = c.sampleRate; const b = c.createBuffer(1, len, c.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1; return this._nb = b; },
+  thud() { if (!this.ctx || !this.on) return; const c = this.ctx, t = c.currentTime; const o = c.createOscillator(), g = c.createGain(); o.frequency.setValueAtTime(90, t); o.frequency.exponentialRampToValueAtTime(45, t + .2); g.gain.setValueAtTime(.9, t); g.gain.exponentialRampToValueAtTime(.001, t + .3); o.connect(g); g.connect(this.out); o.start(t); o.stop(t + .35); },
+  boing() { if (!this.ctx || !this.on) return; const c = this.ctx, t = c.currentTime; const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(520, t + .12); o.frequency.exponentialRampToValueAtTime(330, t + .3); g.gain.setValueAtTime(.18, t); g.gain.exponentialRampToValueAtTime(.001, t + .4); o.connect(g); g.connect(this.out); o.start(t); o.stop(t + .45); },
   chime() { if (!this.ctx || !this.on) return; const t = this.ctx.currentTime; [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.note(f, t + i * .14, 1.2, .05, 'sine')); }
 };
 $('#sound').addEventListener('click', (e) => { Sound.toggle(); e.currentTarget.setAttribute('aria-pressed', Sound.on); e.currentTarget.textContent = Sound.on ? '聲音 ON' : '聲音 OFF'; });
@@ -403,7 +464,7 @@ async function intro() {
   $('#go', st).addEventListener('click', () => { S.draft = { items: [] }; save(); dropOff(); });
   $('#demo', st)?.addEventListener('click', demo);
   $('#lastrc', st)?.addEventListener('click', () => { setStage(receiptHTML(last) + '<div class="row"><button type="button" class="btn" id="back">回櫃台</button></div>'); $('#back').addEventListener('click', intro); });
-  $('#resume', st)?.addEventListener('click', () => { const d = S.draft; const i = d.items.findIndex(x => !x.split); if (i === -1) machine(); else if (d.started) split(i); else dropOff(); });
+  $('#resume', st)?.addEventListener('click', () => { const d = S.draft; const i = d.items.findIndex(x => !x.split); if (i === -1) machine(); else if (d.started) item(i); else dropOff(); });
 }
 
 async function demo() {
@@ -463,7 +524,7 @@ async function dropOff() {
     const kg = totalKg(items); setBin(kg);
     $('#weight', st).innerHTML = items.length ? `回收桶 · 怨念重量 <b>${kg}</b> kg · ${items.length} / 5 件` : '';
     $('#next-row', st).innerHTML = items.length ? `<button type="button" class="btn solid" id="start">就這些了，開始拆</button>` : '';
-    $('#start', st)?.addEventListener('click', () => { S.draft.started = true; save(); split(0); });
+    $('#start', st)?.addEventListener('click', () => { S.draft.started = true; save(); item(0); });
     $('#drop', st).querySelector('[type=submit]').disabled = items.length >= 5;
   };
   render();
@@ -548,11 +609,158 @@ async function split(i) {
     if (said && it.other) await say([['收到了。', '嗯。這一句很重要。', '好，這一件拆開了。'][i % 3]]);
     else await say(['沒關係。有些怨，要回收很多次。這一件先放著，下次再來。']);
     await sleep(500);
-    if (i + 1 < items.length) split(i + 1); else machine();
+    if (i + 1 < items.length) item(i + 1); else machine();
   };
   $('#split-ok', st).addEventListener('click', () => finish(true));
   $('#split-later', st).addEventListener('click', () => finish(false));
-  if (i === 0) await say(['一件一件來。先拆成兩半：上面的夗，底下的心。'], { noScroll: true });
+  await say([i === 0 ? '心撿回來了。現在，把它跟上面那層夗拆開，看看它在乎的是什麼。' : '好，這一件也拆開來看。'], { noScroll: true });
+}
+
+/* ---------- 砸 ---------- */
+function item(i) { const it = S.draft.items[i]; if (it.smashed) split(i); else smash(i); }
+const SWEAR_RE = [
+  '幹你娘', '幹你老師', '幹您娘', '靠北', '靠腰', '靠杯', '機掰', '雞掰', '王八蛋', '他媽的', '他媽', '媽的', '去死', '混蛋', '白癡', '白痴',
+  '智障', '白目', '北七', '衝三小', '三小', '廢物', '垃圾', '賤人', '婊子', '屁啦', '尛', '肏', '屌', 'FUCK', 'SHIT', 'DAMN', 'BITCH', 'WTF'
+].sort((a, b) => b.length - a.length).map(w => new RegExp(w, 'gi'))
+ .concat([/幹(?=[你妳他她!！~～，,。.\s]|$)/g, /靠(?=[!！~～，,。.\s]|$)/g, /操(?=[你妳他她!！~～，,。.\s]|$)/g]);
+const SYM = '＃＄％＆＊！＠';
+function maskSwears(str) { let out = str; for (const re of SWEAR_RE) out = out.replace(re, m => [...m].map((_, k) => SYM[(k * 3 + m.length) % SYM.length]).join('')); return out; }
+const POPS = ['砰！', '碰！', '鏘！', '再來！', '用力！', '爽！', '好！', '哐！'];
+const STAMPS_OTHER = ['不是你的錯', '你有權利生氣', '你受委屈了'];
+const STAMPS_SELF = ['你已經很努力了', '那時候的你也很難', '你有權利生氣'];
+const CRACKS = ['M84 20 L70 70 L92 98 L60 150', 'M140 60 L110 92 L128 130', 'M30 90 L64 112 L50 160 L78 200', 'M120 160 L96 190 L118 226', 'M84 120 L130 150 L150 140', 'M20 180 L52 170 L60 214', 'M150 200 L126 214', 'M100 30 L130 40 L150 22'];
+
+async function smash(i) {
+  const items = S.draft.items, it = items[i], self = isSelf(it.to);
+  clearTalk();
+  await say(i === 0 ? ['等一下。拆之前，先砸。', '剛剛那句，是你整理過的版本。現在不用整理了。', '這裡講話不用公平，罵髒話也可以。我不會跟別人說。'] : ['下一件。一樣，先吼，再砸。']);
+  const st = setStage(`<div class="card">
+    <div class="split-head"><span>不講理區 · 第 ${i + 1} / ${items.length} 件</span><span>${kgOf(it)} kg</span></div>
+    <p class="grudge">${esc(it.text)}<small>對 ${esc(it.to)} · 放了 ${esc(it.dur)}</small></p>
+    <div class="field"><label for="rant">${self ? '對自己吼也可以。你最想罵自己什麼？' : `如果${esc(it.to)}現在就站在你面前，你想吼什麼？`}</label>
+      <textarea id="rant" class="rant" rows="3" maxlength="300" placeholder="想到什麼就打什麼。"></textarea></div>
+    <p class="rant-meter" id="rant-meter">怒氣 <b>▯▯▯▯▯▯▯▯▯▯</b></p>
+    <div class="row"><button type="button" class="btn red" id="hammer">拿起鐵鎚</button><button type="button" class="btn ghost" id="skip-rant">罵不出來，直接砸</button></div>
+  </div>`);
+  const rant = $('#rant', st), meter = $('#rant-meter b', st);
+  rant.addEventListener('input', () => {
+    const n = rant.value.length, bang = (rant.value.match(/[!！]/g) || []).length;
+    const lv = Math.min(10, Math.round(n / 8 + bang));
+    meter.textContent = '▮'.repeat(lv) + '▯'.repeat(10 - lv);
+    rant.style.fontSize = (17 + Math.min(n, 120) / 9) + 'px';
+    rant.style.borderColor = lv > 2 ? 'var(--red)' : '';
+    rant.style.boxShadow = lv > 5 ? `0 0 ${lv * 3}px rgba(220,58,80,.5)` : '';
+  });
+  rant.focus({ preventScroll: true });
+  const go = (text) => arena(i, text);
+  $('#hammer', st).addEventListener('click', () => go(rant.value.trim()));
+  $('#skip-rant', st).addEventListener('click', () => go(''));
+}
+
+async function arena(i, raw) {
+  const items = S.draft.items, it = items[i], self = isSelf(it.to);
+  const shown = raw || it.text;
+  const need = Math.max(10, Math.min(26, Math.round(8 + kgOf(it) * 2.4 + raw.length / 25)));
+  clearTalk();
+  await say(['砸。這裡砸東西不用賠。', '砸到碎為止。'], { noScroll: true });
+  const st = setStage(`<div class="arena" id="arena">
+      <span class="hits" id="hits"><b>0</b> 下</span>
+      <button type="button" class="can-big" id="can-big" aria-label="砸罐子">
+        <span class="can-body"><span class="can-text">${esc(shown)}</span></span>
+        <svg class="cracks" viewBox="0 0 168 236" aria-hidden="true">${CRACKS.map(d => `<path d="${d}"/>`).join('')}</svg>
+      </button>
+    </div>
+    <div class="hp" aria-hidden="true"><i id="hp"></i></div>
+    <p class="arena-tip" id="arena-tip">連續點罐子，砸到碎為止。電腦也可以一直按空白鍵。</p>`);
+  const ar = $('#arena', st), can = $('#can-big', st), hp = $('#hp', st), hitsEl = $('#hits b', st), tip = $('#arena-tip', st), cracks = $$('.cracks path', st);
+  ar.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+  can.focus({ preventScroll: true });
+  const chars = [...shown.replace(/\s/g, '')]; let ci = 0, hits = 0, done = false;
+  const fly = (n, big) => {
+    const r = ar.getBoundingClientRect();
+    for (let k = 0; k < n; k++) {
+      const p = document.createElement('span'); p.className = 'particle'; p.textContent = chars.length ? chars[ci++ % chars.length] : '怨';
+      if (big) p.style.fontSize = (18 + Math.random() * 26) + 'px';
+      ar.appendChild(p);
+      const ang = Math.random() * Math.PI * 2, dist = (big ? 160 : 90) + Math.random() * (big ? 220 : 120);
+      const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist - 40, rot = (Math.random() - .5) * 720;
+      if (reduce || !p.animate) { setTimeout(() => p.remove(), 300); continue; }
+      p.animate([{ transform: 'translate(-50%,-50%) rotate(0)', opacity: 1 }, { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy + 120}px)) rotate(${rot}deg)`, opacity: 0 }], { duration: 700 + Math.random() * 600, easing: 'cubic-bezier(.2,.7,.4,1)' }).onfinish = () => p.remove();
+    }
+  };
+  const popWord = (w) => {
+    const p = document.createElement('span'); p.className = 'pop'; p.textContent = w;
+    p.style.left = (20 + Math.random() * 60) + '%'; p.style.top = (15 + Math.random() * 55) + '%'; ar.appendChild(p);
+    if (p.animate && !reduce) p.animate([{ transform: 'scale(.4)', opacity: 1 }, { transform: 'scale(1.3) translateY(-20px)', opacity: 0 }], { duration: 600 }).onfinish = () => p.remove(); else setTimeout(() => p.remove(), 400);
+  };
+  const hit = () => {
+    if (done) return;
+    hits++; hitsEl.textContent = hits; const left = Math.max(0, need - hits); const dmg = hits / need;
+    hp.style.width = (left / need * 100) + '%';
+    cracks.forEach((c, k) => c.classList.toggle('on', k < Math.ceil(dmg * cracks.length)));
+    const rx = (Math.random() - .5) * 18 * (1 + dmg), sx = 1 - dmg * .18 + Math.random() * .04, sy = 1 - dmg * .32;
+    can.style.transform = `rotate(${rx}deg) scale(${sx}, ${sy})`;
+    ar.classList.remove('quake'); void ar.offsetWidth; ar.classList.add('quake');
+    fly(2 + Math.floor(dmg * 4)); if (hits % 3 === 0 || left <= 2) popWord(left === 1 ? '最後一下！' : POPS[Math.floor(Math.random() * POPS.length)]);
+    Sound.smash(.6 + dmg * .6); try { navigator.vibrate && navigator.vibrate(20 + dmg * 30); } catch (e) {}
+    if (hits === Math.floor(need / 2)) tip.textContent = '還沒碎。繼續。';
+    if (left === 0) explode();
+  };
+  can.addEventListener('pointerdown', (e) => { e.preventDefault(); hit(); });
+  can.addEventListener('click', (e) => { if (e.detail === 0) hit(); });
+  can.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!e.repeat || hits % 2) hit(); } });
+  const explode = async () => {
+    done = true; can.style.transition = 'transform .25s, opacity .25s'; can.style.transform = 'scale(1.3)'; can.style.opacity = '0';
+    const fl = document.createElement('span'); fl.className = 'flash'; ar.appendChild(fl); setTimeout(() => fl.remove(), 600);
+    fly(36, true); Sound.smash(1.6); setTimeout(() => Sound.smash(1.2), 90);
+    try { navigator.vibrate && navigator.vibrate([60, 40, 120]); } catch (e) {}
+    it.hits = hits; save();
+    tip.textContent = `碎了。一共砸了 ${hits} 下。`; hp.style.width = '0';
+    await sleep(700); can.remove();
+    const heart = document.createElement('button'); heart.type = 'button'; heart.className = 'heart-core'; heart.textContent = '心'; heart.setAttribute('aria-label', '一顆砸不壞的心');
+    ar.appendChild(heart);
+    let bonks = 0;
+    heart.addEventListener('click', () => {
+      bonks++; heart.classList.remove('bonk'); void heart.offsetWidth; heart.classList.add('bonk'); Sound.boing();
+      tip.textContent = ['砸不壞的。', '真的砸不壞。', '你看，它還在。'][Math.min(bonks - 1, 2)];
+    });
+    await sleep(1400);
+    tip.textContent = '罐子碎了。中間剩下一個東西。你可以試著砸砸看。';
+    await sleep(2600);
+    const box = document.createElement('div'); box.className = 'talk'; stage().appendChild(box);
+    await say(['外面那一層，你都砸碎了。', '剩下這個砸不壞的，是心。如果你一點都不在乎，根本不會有這麼多力氣砸。', '撿起來之前，先把這件事判一判。'], { into: box });
+    verdict(i, raw, self);
+  };
+}
+
+async function verdict(i, raw, self) {
+  const it = S.draft.items[i];
+  const masked = maskSwears(raw); const hasSwear = masked !== raw;
+  const wrap = document.createElement('div'); wrap.className = 'card verdict';
+  wrap.innerHTML = `<h3>判決書 · 第 ${i + 1} 件</h3>
+    <p class="grudge">${esc(it.text)}<small>對 ${esc(it.to)}</small></p>
+    ${raw ? `<p class="said" id="said">你剛剛吼的：「${esc(raw)}」</p><p class="said-note" id="said-note"></p>` : ''}
+    <div class="seal-zone" id="seal-zone"><span class="ph">在這裡蓋章</span></div>
+    <div class="stamps" id="stamps">${(self ? STAMPS_SELF : STAMPS_OTHER).map(s => `<button type="button" class="btn red">${s}</button>`).join('')}</div>`;
+  stage().appendChild(wrap); wrap.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  if (raw) {
+    const note = $('#said-note', wrap), said = $('#said', wrap);
+    if (hasSwear) {
+      note.textContent = '（你說出口了。）';
+      setTimeout(async () => {
+        if (!reduce) for (let k = 0; k < 6; k++) { said.textContent = `你剛剛吼的：「${k % 2 ? masked : raw}」`; await sleep(90); }
+        said.textContent = `你剛剛吼的：「${masked}」`; said.classList.add('muted');
+        note.textContent = '消音器啟動。不過你已經吼出來了，算數。';
+      }, 3800);
+    } else note.textContent = '回收站都聽到了。';
+  }
+  $$('#stamps .btn', wrap).forEach(b => b.addEventListener('click', async () => {
+    it.stamp = b.textContent; it.smashed = true; save();
+    $('#seal-zone', wrap).innerHTML = `<span class="seal">${esc(it.stamp)}</span>`;
+    Sound.thud(); try { navigator.vibrate && navigator.vibrate(50); } catch (e) {}
+    $('#stamps', wrap).innerHTML = '<button type="button" class="btn solid" id="pick">撿起這顆心</button>';
+    $('#pick', wrap).addEventListener('click', () => split(i));
+  }));
 }
 
 async function machine() {
@@ -568,7 +776,7 @@ async function machine() {
   line('<span class="d">回收機啟動 · 垃圾車音樂播放中</span>'); tick(); await sleep(W);
   let totalReplay = 0; const needCount = {};
   for (const it of items) {
-    ride(it.text, false); line(`<span class="r">壓扁：${esc(it.text)}</span>`); tick(); await sleep(W);
+    ride(it.text, false); line(`<span class="r">回收碎片：${esc(it.text)}${it.hits ? ` · 砸了 ${it.hits} 下` : ''}</span>`); tick(); await sleep(W);
     totalReplay += replays(it); it.needs.forEach(n => needCount[n] = (needCount[n] || 0) + 1);
     line(`<span class="d">分離 夗／心 · 蒸發重播 約 ${replays(it).toLocaleString()} 次</span>`);
     if (it.other) { ride(it.other, true); line(`<span class="g">回收為念：${esc(it.other)}</span>`); }
@@ -578,7 +786,7 @@ async function machine() {
   line(`<span class="d">翻來覆去 合計蒸發 約 ${totalReplay.toLocaleString()} 次</span>`); tick(); await sleep(W);
   line(`<span class="g">取出底下的心：${Object.entries(needCount).map(([n, c]) => `${esc(n)}${c > 1 ? ' ×' + c : ''}`).join('、')}</span>`); tick();
   setBin(totalKg(items), 'gold'); Sound.chime(); await sleep(W * 1.5);
-  const rc = { ts: Date.now(), date: fmtDate(new Date()), time: new Date().toTimeString().slice(0, 5), no: 'YN-' + Math.floor(10000000 + Math.random() * 89999999), items: items.map(i => ({ to: i.to, text: i.text, dur: i.dur, kg: kgOf(i), other: i.other, needs: i.needs })), kg: totalKg(items), replay: totalReplay, needs: Object.keys(needCount), name: '' };
+  const rc = { ts: Date.now(), date: fmtDate(new Date()), time: new Date().toTimeString().slice(0, 5), no: 'YN-' + Math.floor(10000000 + Math.random() * 89999999), items: items.map(i => ({ to: i.to, text: i.text, dur: i.dur, kg: kgOf(i), other: i.other, needs: i.needs, hits: i.hits || 0, stamp: i.stamp || '' })), kg: totalKg(items), hits: items.reduce((a, i) => a + (i.hits || 0), 0), replay: totalReplay, needs: Object.keys(needCount), name: '' };
   S.receipts.push(rc); S.draft = null; save(); renderLedger();
   receipt(rc);
 }
@@ -590,9 +798,10 @@ function receiptHTML(rc) {
     <p class="rc-c rc-big">${esc(rc.date.replace(/\./g, '-'))}</p>
     <p class="rc-c">${esc(rc.time)} · ${esc(rc.no)}</p>
     <hr class="rc-hr">
-    ${rc.items.map(i => `<div class="rc-item"><span class="from">怨｜${esc(i.text)}</span><span class="to">念｜${i.other ? esc(i.other) : '（另一半尚未說出 · 下次再來）'}</span><span class="meta">對 ${esc(i.to)} · ${esc(i.dur)} · ${i.kg} kg${i.needs.length ? ' · 心：' + i.needs.map(esc).join('、') : ''}</span></div>`).join('')}
+    ${rc.items.map(i => `<div class="rc-item"><span class="from">怨｜${esc(i.text)}</span><span class="to">念｜${i.other ? esc(i.other) : '（另一半尚未說出 · 下次再來）'}</span><span class="meta">對 ${esc(i.to)} · ${esc(i.dur)} · ${i.kg} kg${i.needs.length ? ' · 心：' + i.needs.map(esc).join('、') : ''}${i.hits ? ` · 砸了 ${i.hits} 下` : ''}${i.stamp ? ` · 印「${esc(i.stamp)}」` : ''}</span></div>`).join('')}
     <hr class="rc-hr">
     <p class="rc-kv"><span>怨念重量</span><span>${rc.kg} kg → 0.0 kg</span></p>
+    ${rc.hits ? `<p class="rc-kv"><span>砸碎</span><span>共 ${rc.hits} 下</span></p>` : ''}
     <p class="rc-kv"><span>蒸發的翻來覆去</span><span>約 ${rc.replay.toLocaleString()} 次</span></p>
     <p class="rc-kv"><span>取回的心</span><span>${rc.needs.map(esc).join('、') || '—'}</span></p>
     <hr class="rc-hr">
