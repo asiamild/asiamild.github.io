@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>夜間怨念回收站</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="葉老師的夜間怨念回收站：把你自己的怨念帶來，拆開、回收，換一張回收證明。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<style>
+/* Layout: a night street corner under a sodium streetlamp, with a little recycling kiosk.
+   Below it, 葉老師 talks in bubbles and one work table at a time (drop off, take apart, machine, receipt).
+   Grudges are red cans; what they turn into is lamp-gold. Single committed dark look. */
+:root {
+  --night: #0b0e14;
+  --street: #131824;
+  --line: rgba(200, 210, 230, .14);
+  --ink: #e6e9ef;
+  --mute: #8f97a7;
+  --lamp: #f5a524;
+  --lamp-soft: rgba(245, 165, 36, .13);
+  --red: #dc3a50;
+  --red-soft: rgba(220, 58, 80, .12);
+  --green: #43b884;
+  --paper: #f4f2ec;
+  --paper-ink: #1f1f22;
+  --paper-mute: #77736b;
+  --f-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --f-serif: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --f-hand: "LXGW WenKai TC", "Kaiti TC", "BiauKai", "KaiTi", serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { background: var(--night); }
+body { margin: 0; background: var(--night); color: var(--ink); font-family: var(--f-sans); font-size: 16.5px; line-height: 1.8; overflow-x: hidden; }
+::selection { background: var(--lamp); color: #1c1205; }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--lamp); outline-offset: 3px; }
+.sr { position: absolute; left: -9999px; }
+
+/* ---------- scene ---------- */
+.scene { position: relative; max-width: 760px; margin: 0 auto; }
+.scene svg { display: block; width: 100%; height: auto; }
+.sign-text { font-family: var(--f-serif); font-weight: 900; }
+.hours { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); top: 16px; font-family: var(--f-mono); font-size: 12px; color: var(--mute); letter-spacing: .06em; margin: 0; }
+.hours b { color: var(--lamp); font-weight: 500; }
+.bin-fill { transition: y .8s, height .8s, fill 1.4s; }
+.sign-bg { transition: fill 1.4s; }
+.sound {
+  position: fixed; z-index: 40; top: calc(12px + env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px));
+  font-family: var(--f-mono); font-size: 12px; color: var(--mute); background: rgba(11,14,20,.75);
+  border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer;
+}
+.sound[aria-pressed="true"] { color: var(--lamp); border-color: var(--lamp); }
+
+/* ---------- column ---------- */
+.wrap {
+  max-width: 640px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 8px 64px; display: grid; gap: 22px;
+}
+h1 { margin: 0; font-family: var(--f-serif); font-weight: 900; font-size: clamp(32px, 8vw, 48px); line-height: 1.2; letter-spacing: .06em; text-wrap: balance; }
+h1 .r { color: var(--red); transition: color 1.4s; }
+body.done h1 .r { color: var(--lamp); }
+.eyebrow { margin: 0; font-family: var(--f-mono); font-size: 12px; letter-spacing: .12em; color: var(--mute); text-transform: uppercase; }
+.lede { margin: 0; color: var(--mute); }
+
+/* talk */
+.talk { display: grid; gap: 10px; cursor: default; }
+.bub { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: start; animation: up .5s ease-out both; }
+.bub .av { width: 34px; height: 34px; border-radius: 50%; background: #2a2f3c; color: var(--lamp); display: grid; place-items: center; font-family: var(--f-serif); font-weight: 900; font-size: 15px; border: 1px solid var(--line); }
+.bub p { margin: 0; background: var(--street); border: 1px solid var(--line); padding: 8px 13px; border-radius: 4px 14px 14px 14px; font-family: var(--f-hand); font-size: 18px; line-height: 1.75; justify-self: start; min-width: 0; }
+.bub.cont .av { visibility: hidden; }
+.bub.big p { font-size: 22px; color: var(--lamp); border-color: rgba(245,165,36,.4); }
+@keyframes up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.tap { margin: 0; font-size: 12px; color: var(--mute); font-family: var(--f-mono); text-align: center; }
+
+/* stage */
+.stage { display: grid; gap: 16px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn {
+  appearance: none; cursor: pointer; border: 1px solid var(--ink); background: transparent; color: var(--ink);
+  border-radius: 999px; padding: 9px 20px; font-size: 15.5px; transition: background .2s, opacity .2s;
+}
+.btn:hover { background: rgba(230, 233, 239, .07); }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn.solid { background: var(--lamp); border-color: var(--lamp); color: #1c1205; font-weight: 700; }
+.btn.solid:hover { background: #ffb840; }
+.btn.ghost { border-color: var(--line); color: var(--mute); }
+.btn.red { border-color: var(--red); color: var(--red); }
+.btn.red:hover { background: var(--red-soft); }
+.card { border: 1px solid var(--line); border-radius: 10px; background: var(--street); padding: 18px; display: grid; gap: 14px; }
+.card h3 { margin: 0; font-size: 15px; font-family: var(--f-mono); font-weight: 500; color: var(--mute); letter-spacing: .06em; }
+.field { display: grid; gap: 6px; }
+.field > label, .field > .lab { font-size: 14px; color: var(--mute); }
+.field input, .field textarea {
+  width: 100%; min-width: 0; background: var(--night); border: 1px solid var(--line); border-radius: 8px;
+  padding: 10px 12px; font-size: 17px; resize: vertical;
+}
+.field input:focus, .field textarea:focus { outline: none; border-color: var(--lamp); }
+.field textarea.hand { font-family: var(--f-hand); font-size: 19px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { cursor: pointer; border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 4px 13px; font-size: 14.5px; color: var(--ink); }
+.chip:hover { border-color: var(--mute); }
+.chip[aria-pressed="true"] { background: var(--lamp-soft); border-color: var(--lamp); color: var(--lamp); }
+.chip.self[aria-pressed="true"] { background: var(--red-soft); border-color: var(--red); color: var(--red); }
+.err { margin: 0; color: var(--red); font-size: 14px; min-height: 1.4em; }
+
+.cans { display: grid; gap: 8px; }
+.can { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 8px; background: var(--red-soft); border: 1px solid rgba(220,58,80,.35); animation: drop .7s cubic-bezier(.3,1.4,.6,1) both; }
+@keyframes drop { from { opacity: 0; transform: translateY(-30px) rotate(-6deg); } to { opacity: 1; transform: none; } }
+.can svg { width: 22px; height: 30px; }
+.can .t { min-width: 0; }
+.can .t b { display: block; font-family: var(--f-serif); font-weight: 900; color: var(--red); font-size: 16px; line-height: 1.5; overflow-wrap: anywhere; }
+.can .t span { font-size: 12.5px; color: var(--mute); }
+.can .w { font-family: var(--f-mono); font-size: 13px; color: var(--mute); }
+.can .x { background: none; border: 0; color: var(--mute); cursor: pointer; font-size: 13px; padding: 2px 4px; }
+.weight { font-family: var(--f-mono); font-size: 13px; color: var(--mute); margin: 0; }
+.weight b { color: var(--red); font-size: 18px; font-weight: 600; }
+
+/* split card */
+.split-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-family: var(--f-mono); font-size: 12px; color: var(--mute); }
+.grudge { margin: 0; font-family: var(--f-serif); font-weight: 900; font-size: 21px; color: var(--red); line-height: 1.55; overflow-wrap: anywhere; }
+.grudge small { display: block; font-family: var(--f-sans); font-weight: 400; font-size: 13px; color: var(--mute); }
+.part { display: grid; gap: 8px; border-top: 1px dashed var(--line); padding-top: 14px; }
+.part .k { display: flex; align-items: baseline; gap: 10px; }
+.part .k i { font-style: normal; font-family: var(--f-serif); font-weight: 900; font-size: 26px; line-height: 1; color: var(--mute); }
+.part.on .k i { color: var(--lamp); }
+.part .k p { margin: 0; font-size: 15.5px; }
+.part.lock { opacity: .35; pointer-events: none; }
+.glyphsplit { display: flex; align-items: center; justify-content: center; gap: 14px; font-family: var(--f-serif); font-weight: 900; font-size: 40px; line-height: 1; padding: 6px 0; }
+.glyphsplit .a { color: var(--red); } .glyphsplit .b { color: var(--mute); font-size: 22px; } .glyphsplit .c { color: var(--lamp); }
+
+/* machine */
+.machine { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #0e121b; }
+.belt { position: relative; height: 92px; overflow: hidden; border-bottom: 1px solid var(--line); background: repeating-linear-gradient(90deg, #1a2030 0 18px, #151a26 18px 36px); animation: belt 1s linear infinite; }
+@keyframes belt { to { background-position: 36px 0; } }
+.belt .bit { position: absolute; top: 28px; font-family: var(--f-serif); font-weight: 900; font-size: 22px; color: var(--red); white-space: nowrap; animation: ride 3.2s linear forwards; }
+.belt .bit.gold { color: var(--lamp); top: 30px; font-family: var(--f-hand); }
+@keyframes ride { from { left: -40%; } to { left: 110%; } }
+.mlog { margin: 0; padding: 14px 16px; font-family: var(--f-mono); font-size: 13px; line-height: 1.9; min-height: 9em; list-style: none; }
+.mlog li { animation: up .4s ease-out both; }
+.mlog .g { color: var(--lamp); } .mlog .r { color: var(--red); } .mlog .d { color: var(--mute); }
+.bar { height: 6px; background: var(--line); }
+.bar i { display: block; height: 100%; width: 0; background: var(--lamp); transition: width .5s; }
+
+/* receipt */
+.receipt {
+  justify-self: center; width: 100%; max-width: 380px; background: var(--paper); color: var(--paper-ink);
+  font-family: var(--f-mono); font-size: 12.5px; line-height: 1.65; padding: 22px 20px 18px;
+  box-shadow: 0 18px 40px rgba(0,0,0,.55); position: relative; animation: print 1.6s ease-out both; transform-origin: top;
+  -webkit-mask: radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 0 / 14px 100% repeat-x;
+          mask: radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 0 / 14px 100% repeat-x;
+  padding-bottom: 28px;
+}
+@keyframes print { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+.receipt p { margin: 0; }
+.rc-c { text-align: center; }
+.rc-title { font-family: var(--f-serif); font-weight: 900; font-size: 19px; letter-spacing: .1em; }
+.rc-big { font-size: 22px; font-weight: 600; letter-spacing: .04em; }
+.rc-hr { border: 0; border-top: 1px dashed #b5b0a5; margin: 10px 0; }
+.rc-item { display: grid; gap: 2px; margin-bottom: 10px !important; }
+.rc-item .from { color: #a12d3d; font-family: var(--f-sans); font-weight: 700; font-size: 13.5px; text-decoration: line-through; text-decoration-color: rgba(161,45,61,.5); overflow-wrap: anywhere; }
+.rc-item .to { font-family: var(--f-hand); font-size: 16px; color: var(--paper-ink); overflow-wrap: anywhere; }
+.rc-item .meta { color: var(--paper-mute); font-size: 11.5px; }
+.rc-kv { display: flex; justify-content: space-between; gap: 10px; }
+.rc-kv span:last-child { text-align: right; }
+.barcode { height: 40px; margin: 10px 0 4px; background: repeating-linear-gradient(90deg, #1f1f22 0 2px, transparent 2px 4px, #1f1f22 4px 5px, transparent 5px 8px, #1f1f22 8px 11px, transparent 11px 12px); }
+.rc-note { color: var(--paper-mute); font-size: 11.5px; }
+
+/* gift */
+.gift { text-align: center; display: grid; gap: 14px; padding: 18px 6px; }
+.gift .words { margin: 0; font-family: var(--f-hand); font-size: clamp(24px, 6.4vw, 32px); color: var(--lamp); line-height: 1.6; text-wrap: balance; animation: glow 2.4s ease-out both; }
+@keyframes glow { from { opacity: 0; filter: blur(8px); letter-spacing: .3em; } to { opacity: 1; filter: none; letter-spacing: .02em; } }
+.gift .from { margin: 0; color: var(--mute); font-size: 14px; }
+
+/* ledger */
+details.ledger { border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; background: rgba(19,24,36,.6); }
+details.ledger summary { cursor: pointer; font-family: var(--f-mono); font-size: 13px; color: var(--mute); letter-spacing: .06em; }
+.ledger ol { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 0; font-size: 14px; }
+.ledger li { display: grid; grid-template-columns: 5.6em 1fr; gap: 2px 12px; padding: 8px 0; border-top: 1px dashed var(--line); }
+.ledger li > * { min-width: 0; }
+.ledger time { font-family: var(--f-mono); font-size: 12.5px; color: var(--mute); }
+.ledger .who { font-weight: 700; }
+.ledger .n { display: block; color: var(--mute); font-size: 13px; }
+.ledger li.you .who { color: var(--lamp); }
+
+.foot { color: var(--mute); font-size: 13px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 18px; align-items: center; border-top: 1px solid var(--line); padding-top: 18px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<button type="button" class="sound" id="sound" aria-pressed="false">聲音 OFF</button>
+
+<header class="scene" aria-label="深夜街角的回收站">
+  <svg viewBox="0 0 400 210" role="img" aria-label="路燈下的夜間怨念回收站">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#05070c"/><stop offset="1" stop-color="#151b2a"/></linearGradient>
+      <linearGradient id="cone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f5a524" stop-opacity=".42"/><stop offset="1" stop-color="#f5a524" stop-opacity=".02"/></linearGradient>
+      <clipPath id="binclip"><rect x="54" y="132" width="44" height="52" rx="3"/></clipPath>
+    </defs>
+    <rect width="400" height="210" fill="url(#sky)"/>
+    <g fill="#cfd6e6" opacity=".7"><circle cx="30" cy="22" r=".9"/><circle cx="96" cy="40" r=".7"/><circle cx="160" cy="16" r="1"/><circle cx="222" cy="34" r=".6"/><circle cx="372" cy="26" r=".9"/><circle cx="340" cy="58" r=".6"/><circle cx="60" cy="70" r=".6"/></g>
+    <rect x="0" y="184" width="400" height="26" fill="#0d1018"/>
+    <rect x="0" y="183" width="400" height="1.2" fill="#232a3b"/>
+    <polygon points="318,58 250,186 390,186" fill="url(#cone)"/>
+    <ellipse cx="320" cy="186" rx="70" ry="6" fill="#f5a524" opacity=".13"/>
+    <rect x="336" y="52" width="4" height="134" fill="#262c3a"/>
+    <path d="M338 54 q0 -10 -12 -10 h-14" stroke="#262c3a" stroke-width="4" fill="none"/>
+    <rect x="304" y="42" width="22" height="9" rx="3" fill="#2f3646"/>
+    <ellipse cx="315" cy="53" rx="9" ry="3" fill="#ffd27a"/>
+    <!-- kiosk -->
+    <rect x="128" y="96" width="140" height="88" fill="#1a2030"/>
+    <polygon points="118,98 278,98 268,84 128,84" fill="#232a3b"/>
+    <rect class="sign-bg" id="sign-bg" x="140" y="62" width="116" height="24" rx="3" fill="#7a1f2c"/>
+    <text class="sign-text" id="sign-text" x="198" y="79" text-anchor="middle" font-size="13" fill="#ffe7ea">夜間怨念回收站</text>
+    <rect x="146" y="112" width="58" height="40" fill="#2a2416"/>
+    <rect x="146" y="112" width="58" height="40" fill="#f5a524" opacity=".28" id="win"/>
+    <circle cx="164" cy="140" r="6" fill="#0d1018"/><rect x="157" y="146" width="14" height="6" fill="#0d1018"/>
+    <rect x="216" y="112" width="40" height="72" fill="#121620"/>
+    <text x="236" y="128" text-anchor="middle" font-size="7" fill="#8f97a7" font-family="IBM Plex Mono, monospace">23:00</text>
+    <text x="236" y="138" text-anchor="middle" font-size="7" fill="#8f97a7" font-family="IBM Plex Mono, monospace">–03:00</text>
+    <!-- bin -->
+    <rect x="54" y="132" width="44" height="52" rx="3" fill="#1d2433"/>
+    <rect class="bin-fill" id="bin-fill" x="54" y="184" width="44" height="0" fill="#dc3a50" clip-path="url(#binclip)" opacity=".85"/>
+    <rect x="54" y="132" width="44" height="52" rx="3" fill="none" stroke="#3a4256" stroke-width="1.5"/>
+    <rect x="50" y="126" width="52" height="7" rx="2" fill="#2e3546"/>
+    <text id="bin-label" x="76" y="164" text-anchor="middle" font-size="16" fill="#e6e9ef" class="sign-text" opacity=".85">怨</text>
+    <!-- cat on the bin -->
+    <g fill="#05070c"><ellipse cx="88" cy="121" rx="9" ry="6"/><circle cx="80" cy="116" r="4.5"/><polygon points="77,113 78,107 81,112"/><polygon points="81,112 84,107 84.5,113"/><path d="M96 122 q8 -2 6 -12" stroke="#05070c" stroke-width="2" fill="none"/></g>
+    <circle cx="79" cy="116" r=".8" fill="#f5a524"/><circle cx="82" cy="116" r=".8" fill="#f5a524"/>
+  </svg>
+  <p class="hours" id="hours"></p>
+</header>
+
+<main class="wrap">
+  <div>
+    <p class="eyebrow">民俗研究社 · 怨念收集器 v1.1 · 回收版</p>
+    <h1><span class="r">夜間</span>怨念回收站</h1>
+  </div>
+  <div class="talk" id="talk" aria-live="polite"></div>
+  <div class="stage" id="stage"></div>
+
+  <details class="ledger" id="ledger">
+    <summary>回收紀錄簿（櫃台上那本）</summary>
+    <ol id="ledger-list"></ol>
+  </details>
+
+  <div class="foot">
+    <span>你寫下的每一個字，都只存在你自己的瀏覽器裡，不會傳到任何地方。</span>
+    <button type="button" class="btn ghost" id="wipe">清除我的紀錄</button>
+  </div>
+</main>
+
+<script>
+(() => {
+'use strict';
+const STORE = 'night-recycle-v1';
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = (n) => String(n).padStart(2, '0');
+const fmtDate = (d) => `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
+
+let S = { receipts: [], draft: null, seenDemo: false };
+try { const raw = localStorage.getItem(STORE); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch (e) {}
+const save = () => { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} };
+
+/* ---------- data ---------- */
+const DUR = { '今天': { kg: .4, days: 1 }, '幾個月': { kg: 1.8, days: 120 }, '好幾年': { kg: 4.6, days: 1500 }, '想不起來從什麼時候': { kg: 7.2, days: 3650 } };
+const REPLAY = { '幾次': () => 5, '幾十次': () => 40, '每天': (d) => d, '數不清': (d) => d * 3 };
+const NEEDS = {
+  '被看見':     { o: '看見我', s: '被看見', gift: '我看見你了。那些沒有人看到的努力，都算數。' },
+  '被重視':     { o: '把我放在心上', s: '被放在心上', gift: '你很重要。不是因為你做了什麼，是因為你是你。' },
+  '被尊重':     { o: '尊重我', s: '被尊重', gift: '你的界線是對的。你可以說不。' },
+  '被理解':     { o: '懂我一次', s: '被理解', gift: '你會這樣想，一定有你的理由。我懂。' },
+  '被公平對待': { o: '公平地對我', s: '被公平地對待', gift: '你吃過的那些虧，不是你的錯。' },
+  '被愛':       { o: '好好愛我', s: '被好好愛著', gift: '你值得被好好愛著。從今天開始，先從你自己。' },
+  '被道歉':     { o: '跟我說一聲對不起', s: '原諒那時候的自己', gift: '那件事，你真的受委屈了。對不起，讓你一個人扛了這麼久。' },
+  '被需要':     { o: '需要我', s: '被需要', gift: '有你在，真的不一樣。' },
+  '想要他好':   { o: '過得好', s: '讓在乎的人好好的', gift: '你會怨，是因為你希望他好。這份心，很溫柔。' },
+  '想要我們好': { o: '跟我好好的', s: '守住這段關係', gift: '你想守住的，值得你這麼用力。也記得，別把自己用完。' },
+  '想要自己好': { o: '讓我好好的', s: '好好的', gift: '你已經在努力變好了。今天這樣，就夠了。' },
+  '想被放過':   { o: '放過我', s: '放過自己', gift: '今天可以休息了。你不用再證明什麼。' }
+};
+const GENERIC_GIFT = '你在乎的，都是好的東西。今天，先給自己一點。';
+const isSelf = (to) => /自己|^我$/.test(to.trim());
+
+const DEMO = {
+  to: '我爸', text: '他這輩子，沒對我說過一次「做得好」。', dur: '想不起來從什麼時候', replay: '數不清',
+  needs: ['被看見'], other: '其實，我只是希望他看我一眼。'
+};
+const LEDGER = [
+  { d: '2026.10.28', who: '葉先生', n: '1 件 · 對父親 · 第一位客人', note: '店主自己。' },
+  { d: '2026.10.29', who: '長安街 吳先生', n: '1 件 · 對自己 · 已全數回收', note: '收據背面寫著：「沒回撥的那通電話。」' },
+  { d: '2026.10.30', who: '鹿嶼 陳小姐', n: '2 件 · 對父親、對自己 · 已全數回收', note: '搭最後一班車來的，說島上晚上沒有回收站。' },
+  { d: '2026.10.31', who: '匿名', n: '4 件 · 3 件已回收 · 1 件下次再來', note: '' }
+];
+
+/* ---------- sound: the recycling truck plays 給愛麗絲 ---------- */
+const Sound = {
+  ctx: null, out: null, on: false, playing: false,
+  init() { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false; this.ctx = new AC(); this.out = this.ctx.createGain(); this.out.gain.value = 0; this.out.connect(this.ctx.destination); return true; },
+  toggle() { if (!this.ctx && !this.init()) return; this.on = !this.on; this.ctx.resume(); this.out.gain.setTargetAtTime(this.on ? .5 : 0, this.ctx.currentTime, .2); },
+  note(f, t, d, vol = .1, type = 'square') {
+    const c = this.ctx, o = c.createOscillator(), g = c.createGain(), lp = c.createBiquadFilter();
+    o.type = type; o.frequency.value = f; o.detune.value = -18; lp.type = 'lowpass'; lp.frequency.value = 1800;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .01); g.gain.setTargetAtTime(0, t + d * .7, .05);
+    o.connect(lp); lp.connect(g); g.connect(this.out); o.start(t); o.stop(t + d + .3);
+  },
+  elise() {
+    if (!this.ctx || !this.on || this.playing) return; this.playing = true;
+    const E5 = 659.25, Ds5 = 622.25, B4 = 493.88, D5 = 587.33, C5 = 523.25, A4 = 440, C4 = 261.63, E4 = 329.63, Gs4 = 415.3, A3 = 220;
+    const q = .2; const seq = [
+      [E5,1],[Ds5,1],[E5,1],[Ds5,1],[E5,1],[B4,1],[D5,1],[C5,1],[A4,3],
+      [C4,1],[E4,1],[A4,1],[B4,3],[E4,1],[Gs4,1],[B4,1],[C5,3],
+      [E4,1],[E5,1],[Ds5,1],[E5,1],[Ds5,1],[E5,1],[B4,1],[D5,1],[C5,1],[A4,3],
+      [C4,1],[E4,1],[A4,1],[B4,3],[E4,1],[C5,1],[B4,1],[A4,4]
+    ];
+    let t = this.ctx.currentTime + .1;
+    for (const [f, n] of seq) { this.note(f, t, q * n * .9, .06); this.note(f / 2, t, q * n * .9, .025, 'triangle'); t += q * n; }
+    this.note(A3, t - q * 4, q * 4, .03, 'triangle');
+    setTimeout(() => this.playing = false, (t - this.ctx.currentTime) * 1000);
+  },
+  clank() {
+    if (!this.ctx || !this.on) return; const c = this.ctx, t = c.currentTime;
+    [180, 263, 411].forEach((f, i) => { const o = c.createOscillator(), g = c.createGain(); o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(.12 / (i + 1), t); g.gain.exponentialRampToValueAtTime(.001, t + .35); o.connect(g); g.connect(this.out); o.start(t); o.stop(t + .4); });
+  },
+  chime() { if (!this.ctx || !this.on) return; const t = this.ctx.currentTime; [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.note(f, t + i * .14, 1.2, .05, 'sine')); }
+};
+$('#sound').addEventListener('click', (e) => { Sound.toggle(); e.currentTarget.setAttribute('aria-pressed', Sound.on); e.currentTarget.textContent = Sound.on ? '聲音 ON' : '聲音 OFF'; });
+
+/* ---------- scene ---------- */
+function openNow() { const h = new Date().getHours(); return h >= 23 || h < 3; }
+function renderHours() { const d = new Date(); $('#hours').innerHTML = `${pad(d.getHours())}:${pad(d.getMinutes())} · ${openNow() ? '<b>營業中</b>' : '非營業時間 · 門沒鎖'}`; }
+function setBin(kg, mode) {
+  const h = Math.min(50, kg * 2.2); const r = $('#bin-fill');
+  r.setAttribute('y', 184 - h); r.setAttribute('height', h);
+  r.setAttribute('fill', mode === 'gold' ? '#f5a524' : '#dc3a50');
+  $('#bin-label').textContent = mode === 'gold' ? '念' : '怨';
+}
+function setSign(done) {
+  $('#sign-bg').setAttribute('fill', done ? '#1f5a43' : '#7a1f2c');
+  $('#sign-text').textContent = done ? '今日回收完成' : '夜間怨念回收站';
+  document.body.classList.toggle('done', !!done);
+}
+
+/* ---------- talk ---------- */
+let fast = false;
+$('#talk').addEventListener('click', () => { fast = true; });
+function clearTalk() { $('#talk').innerHTML = ''; }
+async function say(lines, opts = {}) {
+  fast = false; const talk = opts.into || $('#talk');
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    await sleep(fast || reduce ? 120 : Math.min(2600, 500 + l.length * 45));
+    const b = document.createElement('div'); b.className = 'bub' + (i > 0 || opts.cont ? ' cont' : '') + (opts.big ? ' big' : '');
+    b.innerHTML = `<span class="av" aria-hidden="true">葉</span><p></p>`; $('p', b).textContent = l; talk.appendChild(b);
+    if (!opts.noScroll) b.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+  }
+}
+const stage = () => $('#stage');
+function setStage(html) { stage().innerHTML = html; return stage(); }
+function scrollTo(el) { el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); }
+
+/* ---------- ledger ---------- */
+function renderLedger() {
+  const rows = LEDGER.map(e => `<li><time>${e.d}</time><div><span class="who">${esc(e.who)}</span><span class="n">${esc(e.n)}</span>${e.note ? `<span class="n">${esc(e.note)}</span>` : ''}</div></li>`);
+  S.receipts.forEach(r => rows.push(`<li class="you"><time>${esc(r.date)}</time><div><span class="who">${esc(r.name || '你')}</span><span class="n">${r.items.length} 件 · ${r.items.filter(i => i.other).length} 件已回收${r.items.some(i => !i.other) ? ' · 其他下次再來' : ''}</span></div></li>`));
+  $('#ledger-list').innerHTML = rows.join('');
+}
+
+/* ---------- weights ---------- */
+const kgOf = (it) => +(DUR[it.dur].kg * (1 + Math.min(it.text.length, 60) / 60)).toFixed(1);
+const totalKg = (items) => +items.reduce((a, i) => a + kgOf(i), 0).toFixed(1);
+const replays = (it) => REPLAY[it.replay](DUR[it.dur].days);
+
+/* ---------- stages ---------- */
+async function intro() {
+  clearTalk(); setSign(false); setBin(0); renderLedger();
+  const last = S.receipts[S.receipts.length - 1];
+  if (last) {
+    const days = Math.max(0, Math.round((Date.now() - last.ts) / 864e5));
+    await say([days === 0 ? '又來了啊。今天第二趟？' : `又來了啊。上次是 ${days} 天前。`, '怨會再長出來的，很正常。拿來就好。']);
+  } else {
+    await say(['來了啊。坐。', '我姓葉。以前在大學教民俗學。十年前，我寫了一台「怨念收集器」，專門把別人的怨念收進罐子裡封起來。', '後來我才知道，那台機器有一個缺陷：它只認得怨，看不見念。', '所以我把它改成了回收站。不封，回收。', openNow() ? '你來的時間剛好，正在營業。' : '現在不是營業時間。不過門沒鎖，進來吧。', '你今晚，帶了什麼來？']);
+  }
+  const st = setStage(`<div class="row">
+    <button type="button" class="btn solid" id="go">我有一些怨念要丟</button>
+    ${S.seenDemo ? '' : '<button type="button" class="btn" id="demo">先看葉老師示範一次</button>'}
+    ${last ? '<button type="button" class="btn ghost" id="lastrc">看上次的收據</button>' : ''}
+  </div>
+  ${S.draft && S.draft.items.length ? `<p class="weight">上次還有 ${S.draft.items.length} 件沒回收完。<button type="button" class="btn ghost" id="resume" style="margin-left:6px">接著回收</button></p>` : ''}`);
+  $('#go', st).addEventListener('click', () => { S.draft = { items: [] }; save(); dropOff(); });
+  $('#demo', st)?.addEventListener('click', demo);
+  $('#lastrc', st)?.addEventListener('click', () => { setStage(receiptHTML(last) + '<div class="row"><button type="button" class="btn" id="back">回櫃台</button></div>'); $('#back').addEventListener('click', intro); });
+  $('#resume', st)?.addEventListener('click', () => { const d = S.draft; const i = d.items.findIndex(x => !x.split); if (i === -1) machine(); else if (d.started) split(i); else dropOff(); });
+}
+
+async function demo() {
+  clearTalk(); setStage('');
+  await say(['好，先看我做一次。用我自己的。', '這是我帶來的第一件。']);
+  const st = setStage(splitCardHTML(DEMO, 0, 1, true)); fillSplit(st, DEMO, true);
+  await sleep(600);
+  await say(['怨，上面是「夗」：一個人躺在夜裡，翻來覆去。', '我想過幾次？數不清。每次上台領獎，我都先看台下。他一次都沒有來過。'], { cont: false });
+  $('.part[data-p="a"]', st).classList.add('on');
+  await say(['底下是「心」。如果我一點都不在乎他，就不會怨他四十年。', '我在乎的是：被看見。'], { cont: true });
+  $('.part[data-p="b"]', st).classList.add('on');
+  await say(['然後，把另一半說完。', '其實，我只是希望他看我一眼。'], { cont: true });
+  $('.part[data-p="c"]', st).classList.add('on');
+  await sleep(1200);
+  await say(['我爸 2015 年走的。', '整理他的東西，抽屜裡有一本剪貼簿。我發表過的每一篇文章，報紙上每一個有我名字的小角落，他都剪下來，貼好，旁邊寫日期。', '最後一頁，他用鉛筆寫了三個字。']);
+  await sleep(900); await say(['「做得好」。'], { big: true, cont: true });
+  await say(['他沒來台下，是覺得自己穿得太寒酸，怕丟我的臉。我姑姑後來才告訴我。', '隔年，我寫了那台收集器。我以為我要的是把怨封起來。其實我只是不知道，那些怨該放去哪裡。', '我花了十年才搞懂：拆開來，底下是心。心是可以回收的。', '好了，換你了。'], { cont: true });
+  S.seenDemo = true; save();
+  setStage(`<div class="row"><button type="button" class="btn solid" id="go">換我</button></div>`);
+  $('#go').addEventListener('click', () => { S.draft = { items: [] }; save(); dropOff(); });
+  scrollTo($('#go'));
+}
+
+const TO_CHIPS = ['媽媽', '爸爸', '另一半', '朋友', '主管', '前任', '這個世界', '自己'];
+async function dropOff() {
+  clearTalk(); setSign(false);
+  await say(['怨念請一件一件丟。一句話就好。', '不用寫得公平，也不用寫得有道理。怨本來就不講道理。']);
+  const st = setStage(`
+    <form class="card" id="drop" autocomplete="off">
+      <h3>投遞口 · 一次一件，最多五件</h3>
+      <div class="field"><label for="to">怨誰？</label>
+        <div class="chips" id="to-chips">${TO_CHIPS.map(c => `<button type="button" class="chip${c === '自己' ? ' self' : ''}" aria-pressed="false">${c}</button>`).join('')}</div>
+        <input id="to" maxlength="16" placeholder="也可以自己寫，例如：國中的班導">
+      </div>
+      <div class="field"><label for="what">怨什麼？</label>
+        <textarea id="what" rows="2" maxlength="60" placeholder="例如：他從來不問我過得好不好。"></textarea>
+      </div>
+      <div class="field"><span class="lab">放了多久？</span>
+        <div class="chips" id="dur-chips">${Object.keys(DUR).map(c => `<button type="button" class="chip" aria-pressed="false">${c}</button>`).join('')}</div>
+      </div>
+      <p class="err" id="drop-err" aria-live="polite"></p>
+      <div class="row"><button type="submit" class="btn red">丟進去</button></div>
+    </form>
+    <div class="cans" id="cans"></div>
+    <p class="weight" id="weight"></p>
+    <div class="row" id="next-row"></div>`);
+  const to = $('#to', st), what = $('#what', st), err = $('#drop-err', st);
+  let dur = '';
+  $$('#to-chips .chip', st).forEach(c => c.addEventListener('click', () => { to.value = c.textContent; $$('#to-chips .chip', st).forEach(x => x.setAttribute('aria-pressed', x === c)); }));
+  to.addEventListener('input', () => $$('#to-chips .chip', st).forEach(x => x.setAttribute('aria-pressed', x.textContent === to.value.trim())));
+  $$('#dur-chips .chip', st).forEach(c => c.addEventListener('click', () => { dur = c.textContent; $$('#dur-chips .chip', st).forEach(x => x.setAttribute('aria-pressed', x === c)); }));
+  let nudged = false;
+  const render = () => {
+    const items = S.draft.items;
+    $('#cans', st).innerHTML = items.map((it, i) => `<div class="can"><svg viewBox="0 0 22 30" aria-hidden="true"><rect x="2" y="3" width="18" height="25" rx="3" fill="#dc3a50"/><rect x="4" y="1" width="14" height="3" rx="1" fill="#9a2232"/><text x="11" y="20" text-anchor="middle" font-size="10" fill="#fff" font-weight="900">怨</text></svg><div class="t"><b>${esc(it.text)}</b><span>對 ${esc(it.to)} · ${esc(it.dur)}</span></div><span class="w">${kgOf(it)} kg <button type="button" class="x" data-i="${i}" aria-label="拿回來">拿回來</button></span></div>`).join('');
+    $$('.x', st).forEach(b => b.addEventListener('click', () => { S.draft.items.splice(+b.dataset.i, 1); save(); render(); }));
+    const kg = totalKg(items); setBin(kg);
+    $('#weight', st).innerHTML = items.length ? `回收桶 · 怨念重量 <b>${kg}</b> kg · ${items.length} / 5 件` : '';
+    $('#next-row', st).innerHTML = items.length ? `<button type="button" class="btn solid" id="start">就這些了，開始拆</button>` : '';
+    $('#start', st)?.addEventListener('click', () => { S.draft.started = true; save(); split(0); });
+    $('#drop', st).querySelector('[type=submit]').disabled = items.length >= 5;
+  };
+  render();
+  $('#drop', st).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const t = to.value.trim(), w = what.value.trim();
+    if (!t) { err.textContent = '先寫怨的是誰。可以只寫一個稱呼。'; to.focus(); return; }
+    if (!w) { err.textContent = '寫一句你怨什麼。一句就好。'; what.focus(); return; }
+    if (!dur) { err.textContent = '選一下放了多久。'; return; }
+    err.textContent = '';
+    S.draft.items.push({ to: t, text: w, dur, replay: '', needs: [], other: null, split: false }); save();
+    Sound.clank(); render();
+    what.value = ''; to.value = ''; dur = ''; $$('.chip', st).forEach(x => x.setAttribute('aria-pressed', 'false'));
+    const n = S.draft.items.length;
+    if (n === 1) await say(['收到。丟進去的聲音很好聽吧。', '還有的話繼續丟。沒有了，就按「開始拆」。'], { noScroll: true });
+    else if (n >= 2 && !nudged && !S.draft.items.some(i => isSelf(i.to))) { nudged = true; await say(['很多人最後一件，是給自己的。', '不是一定要。只是提醒你，那一件通常最重。'], { noScroll: true }); }
+    else if (n >= 5) await say(['五件了。今晚夠重了，剩下的明天再來。'], { noScroll: true });
+  });
+}
+
+function splitCardHTML(it, i, n, demo) {
+  const self = isSelf(it.to);
+  return `<div class="card" id="split">
+    <div class="split-head"><span>拆解台 · 第 ${i + 1} / ${n} 件${demo ? ' · 示範' : ''}</span><span>${kgOf(it)} kg</span></div>
+    <p class="grudge">${esc(it.text)}<small>對 ${esc(it.to)} · 放了 ${esc(it.dur)}</small></p>
+    <div class="glyphsplit" aria-label="怨等於夗加心"><span class="a">怨</span><span class="b">＝</span><span class="a">夗</span><span class="b">＋</span><span class="c">心</span></div>
+    <div class="part on" data-p="a"><div class="k"><i>夗</i><p>一個人在夜裡翻來覆去。這件事，你在腦子裡重播過幾次？</p></div>
+      <div class="chips" data-g="replay">${Object.keys(REPLAY).map(c => `<button type="button" class="chip" aria-pressed="false">${c}</button>`).join('')}</div></div>
+    <div class="part lock" data-p="b"><div class="k"><i>心</i><p>如果你一點都不在乎，就不會怨。這句話底下，你在乎的是什麼？（最多選三個）</p></div>
+      <div class="chips" data-g="needs">${Object.keys(NEEDS).filter(k => !(self && (k === '想要他好' || k === '想要我們好'))).map(c => `<button type="button" class="chip" aria-pressed="false">${c}</button>`).join('')}</div>
+      <input class="other-need" maxlength="12" placeholder="都不是？自己寫一個" style="background:var(--night);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:15px;max-width:260px">
+    </div>
+    <div class="part lock" data-p="c"><div class="k"><i>念</i><p>${self ? '最後，把另一半說完。這一件是給自己的，說給自己聽。' : '最後，把另一半說完。不用寄給誰，說給回收站聽就好。'}</p></div>
+      <div class="field"><label class="sr" for="other">另一半</label><textarea id="other" class="hand" rows="2" maxlength="80"></textarea></div>
+      ${demo ? '' : `<div class="row"><button type="button" class="btn solid" id="split-ok">拆好了</button><button type="button" class="btn ghost" id="split-later">我還說不出來</button></div>`}
+    </div>
+  </div>`;
+}
+function fillSplit(st, it, demo) {
+  if (demo) {
+    $$('[data-g="replay"] .chip', st).forEach(c => c.setAttribute('aria-pressed', c.textContent === it.replay));
+    $$('[data-g="needs"] .chip', st).forEach(c => c.setAttribute('aria-pressed', it.needs.includes(c.textContent)));
+    $('#other', st).value = it.other; $$('.part', st).forEach(p => p.classList.remove('lock')); $('.other-need', st).hidden = true;
+    $$('.chip, textarea', st).forEach(x => x.disabled = true);
+  }
+}
+function suggest(it) {
+  const ns = it.needs.slice(0, 2); if (!ns.length) return '';
+  const p = (k, self) => NEEDS[k] ? (self ? NEEDS[k].s : NEEDS[k].o) : k;
+  if (isSelf(it.to)) return `其實，我只是希望自己可以${p(ns[0], true)}${ns[1] ? `，也可以${p(ns[1], true)}` : ''}。`;
+  return `其實，我只是希望${it.to}能${p(ns[0])}${ns[1] ? `，也能${p(ns[1])}` : ''}。`;
+}
+
+async function split(i) {
+  const items = S.draft.items; const it = items[i];
+  clearTalk();
+  const st = setStage(splitCardHTML(it, i, items.length, false));
+  scrollTo($('#split', st));
+  const partA = $('[data-p="a"]', st), partB = $('[data-p="b"]', st), partC = $('[data-p="c"]', st), other = $('#other', st), extra = $('.other-need', st);
+  const refreshSuggest = () => { if (!other.dataset.touched) other.value = suggest(it); };
+  $$('[data-g="replay"] .chip', st).forEach(c => c.addEventListener('click', () => {
+    it.replay = c.textContent; $$('[data-g="replay"] .chip', st).forEach(x => x.setAttribute('aria-pressed', x === c));
+    partB.classList.remove('lock'); partB.classList.add('on');
+  }));
+  const needChips = $$('[data-g="needs"] .chip', st);
+  const syncNeeds = () => {
+    const picked = needChips.filter(x => x.getAttribute('aria-pressed') === 'true').map(x => x.textContent);
+    const ex = extra.value.trim(); it.needs = ex ? [...picked, ex].slice(0, 3) : picked;
+    if (it.needs.length) { partC.classList.remove('lock'); partC.classList.add('on'); } refreshSuggest();
+  };
+  needChips.forEach(c => c.addEventListener('click', () => {
+    const on = c.getAttribute('aria-pressed') === 'true';
+    if (!on && needChips.filter(x => x.getAttribute('aria-pressed') === 'true').length + (extra.value.trim() ? 1 : 0) >= 3) return;
+    c.setAttribute('aria-pressed', !on); syncNeeds();
+  }));
+  extra.addEventListener('input', syncNeeds);
+  other.addEventListener('input', () => other.dataset.touched = '1');
+  const finish = async (said) => {
+    if (!it.replay) { partA.scrollIntoView({ block: 'center' }); return; }
+    it.other = said ? (other.value.trim() || null) : null; it.split = true; save();
+    clearTalk();
+    if (said && it.other) await say([['收到了。', '嗯。這一句很重要。', '好，這一件拆開了。'][i % 3]]);
+    else await say(['沒關係。有些怨，要回收很多次。這一件先放著，下次再來。']);
+    await sleep(500);
+    if (i + 1 < items.length) split(i + 1); else machine();
+  };
+  $('#split-ok', st).addEventListener('click', () => finish(true));
+  $('#split-later', st).addEventListener('click', () => finish(false));
+  if (i === 0) await say(['一件一件來。先拆成兩半：上面的夗，底下的心。'], { noScroll: true });
+}
+
+async function machine() {
+  clearTalk(); const items = S.draft.items;
+  const st = setStage(`<div class="machine"><div class="belt" id="belt"></div><div class="bar"><i id="bar"></i></div><ol class="mlog" id="mlog"></ol></div>`);
+  scrollTo(st);
+  Sound.elise();
+  const log = $('#mlog', st), belt = $('#belt', st), bar = $('#bar', st);
+  const line = (html) => { const li = document.createElement('li'); li.innerHTML = html; log.appendChild(li); };
+  const ride = (text, gold) => { const s = document.createElement('span'); s.className = 'bit' + (gold ? ' gold' : ''); s.textContent = text.length > 16 ? text.slice(0, 16) + '…' : text; belt.appendChild(s); setTimeout(() => s.remove(), 3300); };
+  const steps = items.length * 2 + 3; let k = 0; const tick = () => { k++; bar.style.width = (k / steps * 100) + '%'; };
+  const W = reduce ? 150 : 1100;
+  line('<span class="d">回收機啟動 · 垃圾車音樂播放中</span>'); tick(); await sleep(W);
+  let totalReplay = 0; const needCount = {};
+  for (const it of items) {
+    ride(it.text, false); line(`<span class="r">壓扁：${esc(it.text)}</span>`); tick(); await sleep(W);
+    totalReplay += replays(it); it.needs.forEach(n => needCount[n] = (needCount[n] || 0) + 1);
+    line(`<span class="d">分離 夗／心 · 蒸發重播 約 ${replays(it).toLocaleString()} 次</span>`);
+    if (it.other) { ride(it.other, true); line(`<span class="g">回收為念：${esc(it.other)}</span>`); }
+    else line('<span class="d">另一半尚未說出 · 暫存，下次再來</span>');
+    tick(); await sleep(W);
+  }
+  line(`<span class="d">翻來覆去 合計蒸發 約 ${totalReplay.toLocaleString()} 次</span>`); tick(); await sleep(W);
+  line(`<span class="g">取出底下的心：${Object.entries(needCount).map(([n, c]) => `${esc(n)}${c > 1 ? ' ×' + c : ''}`).join('、')}</span>`); tick();
+  setBin(totalKg(items), 'gold'); Sound.chime(); await sleep(W * 1.5);
+  const rc = { ts: Date.now(), date: fmtDate(new Date()), time: new Date().toTimeString().slice(0, 5), no: 'YN-' + Math.floor(10000000 + Math.random() * 89999999), items: items.map(i => ({ to: i.to, text: i.text, dur: i.dur, kg: kgOf(i), other: i.other, needs: i.needs })), kg: totalKg(items), replay: totalReplay, needs: Object.keys(needCount), name: '' };
+  S.receipts.push(rc); S.draft = null; save(); renderLedger();
+  receipt(rc);
+}
+
+function receiptHTML(rc) {
+  return `<div class="receipt" id="receipt">
+    <p class="rc-c rc-title">夜間怨念回收站</p>
+    <p class="rc-c">回收證明聯</p>
+    <p class="rc-c rc-big">${esc(rc.date.replace(/\./g, '-'))}</p>
+    <p class="rc-c">${esc(rc.time)} · ${esc(rc.no)}</p>
+    <hr class="rc-hr">
+    ${rc.items.map(i => `<div class="rc-item"><span class="from">怨｜${esc(i.text)}</span><span class="to">念｜${i.other ? esc(i.other) : '（另一半尚未說出 · 下次再來）'}</span><span class="meta">對 ${esc(i.to)} · ${esc(i.dur)} · ${i.kg} kg${i.needs.length ? ' · 心：' + i.needs.map(esc).join('、') : ''}</span></div>`).join('')}
+    <hr class="rc-hr">
+    <p class="rc-kv"><span>怨念重量</span><span>${rc.kg} kg → 0.0 kg</span></p>
+    <p class="rc-kv"><span>蒸發的翻來覆去</span><span>約 ${rc.replay.toLocaleString()} 次</span></p>
+    <p class="rc-kv"><span>取回的心</span><span>${rc.needs.map(esc).join('、') || '—'}</span></p>
+    <hr class="rc-hr">
+    <p class="rc-c">本證明可兌換：今晚一個比較好睡的覺</p>
+    <div class="barcode" aria-hidden="true"></div>
+    <p class="rc-c rc-note">怨會再長出來。沒關係，再拿來就好。· 店主 葉</p>
+  </div>`;
+}
+
+async function receipt(rc) {
+  clearTalk(); setStage('');
+  await say(['好了。', '你看，拆開以後，夗的部分都蒸發掉了。那些重播、那些睡不著，本來就不是你要留著的東西。', '剩下的這些心，是回收站唯一做得到的事：把它還給你。']);
+  const st = setStage(receiptHTML(rc) + `<div class="card"><div class="field"><label for="ledger-name">在回收紀錄簿上簽個名（可以不寫）</label><input id="ledger-name" maxlength="12" placeholder="例如：一位深夜的客人"></div><div class="row"><button type="button" class="btn solid" id="sign">簽好了</button></div></div>`);
+  scrollTo($('#receipt', st));
+  $('#sign', st).addEventListener('click', () => { rc.name = $('#ledger-name', st).value.trim() || '一位深夜的客人'; save(); renderLedger(); gift(rc); });
+}
+
+async function gift(rc) {
+  clearTalk(); setStage('');
+  const needs = rc.needs.length ? rc.needs : [];
+  await say(['最後一件事。', '你在乎的那些東西，不一定等得到別人給。', '不過，有一些，你今天就可以先給自己。']);
+  const st = setStage(`<div class="card"><h3>今天，先給自己哪一個？</h3><div class="chips" id="gift-chips">${(needs.length ? needs : ['想要自己好']).map(n => `<button type="button" class="chip">${esc(n)}</button>`).join('')}</div></div><div id="gift-out"></div>`);
+  scrollTo(st);
+  $$('#gift-chips .chip', st).forEach(c => c.addEventListener('click', async () => {
+    $$('#gift-chips .chip', st).forEach(x => x.setAttribute('aria-pressed', x === c));
+    const g = NEEDS[c.textContent] ? NEEDS[c.textContent].gift : GENERIC_GIFT;
+    $('#gift-out', st).innerHTML = `<div class="gift"><p class="words">${esc(g)}</p><p class="from">回收站 · 給${esc(rc.name || '你')}</p></div>`;
+    Sound.chime(); rc.gift = c.textContent; save();
+    await sleep(reduce ? 200 : 2600);
+    if (!$('#end-row')) ending(rc);
+  }));
+}
+
+async function ending(rc) {
+  setSign(true); setBin(0, 'gold');
+  const box = document.createElement('div'); box.className = 'talk'; stage().appendChild(box);
+  await say(['桶子空了。', '怨會再長出來的，人都這樣。在乎的東西越多，就越容易怨。', '所以不用怪自己。拿來回收就好。', '回收站明天晚上還開。', '回家路上小心。'], { into: box });
+  const row = document.createElement('div'); row.className = 'row'; row.id = 'end-row';
+  row.innerHTML = '<button type="button" class="btn" id="again">回櫃台</button><button type="button" class="btn ghost" id="openledger">看紀錄簿上的名字</button>';
+  stage().appendChild(row);
+  $('#again').addEventListener('click', () => { scrollTo(document.body); intro(); });
+  $('#openledger').addEventListener('click', () => { const l = $('#ledger'); l.open = true; scrollTo(l); });
+  row.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+}
+
+/* ---------- boot ---------- */
+renderHours(); setInterval(renderHours, 30000);
+const wipe = $('#wipe'); let armed = false;
+wipe.addEventListener('click', () => {
+  if (!armed) { armed = true; wipe.textContent = '會刪掉你所有的收據。再按一次確定'; setTimeout(() => { armed = false; wipe.textContent = '清除我的紀錄'; }, 4000); return; }
+  try { localStorage.removeItem(STORE); } catch (e) {} location.reload();
+});
+document.addEventListener('visibilitychange', () => { document.title = document.hidden ? '回收站還亮著。' : '夜間怨念回收站'; });
+console.log('%c夜間怨念回收站', 'font:900 15px serif;color:#f5a524');
+console.log('這裡沒有謎題可以拆，也沒有藏起來的答案。\n要拆的，是你帶來的東西。——葉');
+intro();
+})();
+</script>
+
+<!-- 流量統計 GoatCounter（只記錄頁面路徑；你在頁面上寫的字不會被傳送） -->
+<script>window.goatcounter = { path: location.pathname || '/' };</script>
+<script data-goatcounter="https://asiamild.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
