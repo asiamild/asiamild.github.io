@@ -227,6 +227,37 @@ body.done h1 .r { color: var(--lamp); }
 @keyframes stampin { from { transform: rotate(-9deg) scale(2.6); opacity: 0; } to { transform: rotate(-9deg) scale(1); opacity: .95; } }
 .stamps { display: flex; flex-wrap: wrap; gap: 10px; }
 
+/* methods + violence upgrades */
+.methods { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 10px; }
+.method { text-align: left; cursor: pointer; border: 1px solid var(--red); background: var(--red-soft); color: var(--ink); border-radius: 10px; padding: 12px 14px; display: grid; gap: 2px; }
+.method b { color: var(--red); font-size: 17px; }
+.method span { color: var(--mute); font-size: 13.5px; }
+.method:hover { background: rgba(220, 58, 80, .22); }
+.method.burn { border-color: #ff7a1a; background: rgba(255, 122, 26, .1); }
+.method.burn b { color: #ff8a2a; }
+.method.burn:hover { background: rgba(255, 122, 26, .2); }
+.arena-sound { position: absolute; right: 10px; top: 8px; z-index: 6; font-size: 12px; padding: 4px 10px; background: rgba(11,14,20,.8); }
+.can-big { z-index: 2; }
+.can-big.hurt .can-body { animation: hurt .12s; }
+@keyframes hurt { 0% { filter: brightness(2.4) saturate(.4); } 100% { filter: none; } }
+.hammer { position: absolute; width: 84px; height: 84px; left: 50%; top: 50%; z-index: 5; pointer-events: none; opacity: 0; transform-origin: 82% 90%; transition: opacity .2s; filter: drop-shadow(0 6px 8px rgba(0,0,0,.6)); }
+.redflash { position: absolute; inset: 0; z-index: 4; pointer-events: none; background: radial-gradient(circle, rgba(255,40,60,.2), rgba(200,0,30,.85)); opacity: 0; transition: opacity .12s; }
+.redflash.orange { background: radial-gradient(circle, rgba(255,200,80,.35), rgba(255,90,0,.8)); }
+.flash { z-index: 5; animation: flash2 .9s ease-out forwards; }
+@keyframes flash2 { 0% { opacity: 1; background: #fff; } 25% { opacity: .9; background: #ff2a3c; } 100% { opacity: 0; background: #ff2a3c; } }
+.arena.rumble { animation: rumble .9s; }
+@keyframes rumble { 0%, 100% { transform: none; } 10% { transform: translate(-10px, 6px) scale(1.04); } 20% { transform: translate(9px, -8px) scale(1.03); } 30% { transform: translate(-7px, -5px); } 45% { transform: translate(6px, 5px); } 60% { transform: translate(-4px, 2px); } 80% { transform: translate(2px, -2px); } }
+.pop { z-index: 6; white-space: nowrap; }
+.pop.big { font-size: 54px; color: #fff; text-shadow: 0 0 20px #ff2a3c, 4px 0 0 rgba(0,255,255,.6), -4px 0 0 rgba(255,0,60,.8); }
+.particle { z-index: 4; }
+.heart-core { position: relative; z-index: 5; }
+.heart-core.ember { color: #ffb347; text-shadow: 0 0 30px rgba(255,120,20,.95), 0 0 70px rgba(255,60,0,.6); animation: beat 1.4s ease-in-out infinite, appear 1.4s ease-out both, flick 2.3s infinite; }
+@keyframes flick { 0%, 100% { opacity: 1; } 47% { opacity: .82; } 50% { opacity: 1; } 73% { opacity: .9; } }
+.arena.burn { touch-action: none; background: radial-gradient(circle at 50% 70%, #241812, #0b0e14 72%); }
+.burn-cv { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; cursor: crosshair; }
+.burn .hits, .arena .hits { z-index: 6; }
+.after { justify-content: center; }
+
 /* ledger */
 details.ledger { border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; background: rgba(19,24,36,.6); }
 details.ledger summary { cursor: pointer; font-family: var(--f-mono); font-size: 13px; color: var(--mute); letter-spacing: .06em; }
@@ -384,21 +415,50 @@ const Sound = {
     if (!this.ctx || !this.on) return; const c = this.ctx, t = c.currentTime;
     [180, 263, 411].forEach((f, i) => { const o = c.createOscillator(), g = c.createGain(); o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(.12 / (i + 1), t); g.gain.exponentialRampToValueAtTime(.001, t + .35); o.connect(g); g.connect(this.out); o.start(t); o.stop(t + .4); });
   },
+  bus() {
+    if (this._bus) return this._bus; const c = this.ctx;
+    const ws = c.createWaveShaper(); const n = 1024, curve = new Float32Array(n), k = 30; for (let i = 0; i < n; i++) { const x = i * 2 / n - 1; curve[i] = (3 + k) * x * 20 * Math.PI / 180 / (Math.PI + k * Math.abs(x)); } ws.curve = curve;
+    const comp = c.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 8;
+    const len = c.sampleRate * 1.6, imp = c.createBuffer(2, len, c.sampleRate); for (let ch = 0; ch < 2; ch++) { const d = imp.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3); }
+    const rev = c.createConvolver(); rev.buffer = imp; const wet = c.createGain(); wet.gain.value = .35;
+    ws.connect(comp); comp.connect(this.out); comp.connect(rev); rev.connect(wet); wet.connect(this.out);
+    return this._bus = ws;
+  },
+  nz(t, dur, type, f, q, vol, f2) {
+    const c = this.ctx, s = c.createBufferSource(); s.buffer = this.noiseBuf(); s.loop = true; const fl = c.createBiquadFilter(); fl.type = type; fl.frequency.setValueAtTime(f, t); if (f2) fl.frequency.exponentialRampToValueAtTime(f2, t + dur); fl.Q.value = q;
+    const g = c.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur); s.connect(fl); fl.connect(g); g.connect(this.bus()); s.start(t, Math.random()); s.stop(t + dur + .05);
+  },
+  sub(t, f1, f2, dur, vol) { const c = this.ctx, o = c.createOscillator(), g = c.createGain(); o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + dur); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur * 1.2); o.connect(g); g.connect(this.bus()); o.start(t); o.stop(t + dur * 1.3); },
   smash(power = 1) {
     if (!this.ctx || !this.on) return; const c = this.ctx, t = c.currentTime;
-    const s = c.createBufferSource(); s.buffer = this.noiseBuf(); const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 700 + Math.random() * 1600; f.Q.value = .8;
-    const g = c.createGain(); g.gain.setValueAtTime(.55 * power, t); g.gain.exponentialRampToValueAtTime(.001, t + .22 + power * .2);
-    s.connect(f); f.connect(g); g.connect(this.out); s.start(t); s.stop(t + .6);
-    const o = c.createOscillator(), og = c.createGain(); o.frequency.setValueAtTime(140 * power, t); o.frequency.exponentialRampToValueAtTime(40, t + .18); og.gain.setValueAtTime(.7 * power, t); og.gain.exponentialRampToValueAtTime(.001, t + .25);
-    o.connect(og); og.connect(this.out); o.start(t); o.stop(t + .3);
-    [300 + Math.random() * 500, 900 + Math.random() * 700].forEach(fq => { const m = c.createOscillator(), mg = c.createGain(); m.type = 'square'; m.frequency.value = fq; mg.gain.setValueAtTime(.03 * power, t); mg.gain.exponentialRampToValueAtTime(.001, t + .12); m.connect(mg); mg.connect(this.out); m.start(t); m.stop(t + .15); });
+    this.sub(t, 170 * Math.min(1.4, power), 32, .28, 1.1 * Math.min(1.3, power));
+    this.nz(t, .16, 'highpass', 1400, .7, .9 * power);
+    this.nz(t, .3, 'bandpass', 420 + Math.random() * 300, 1.6, 1.2 * power);
+    for (let k = 0; k < 4; k++) { const o = c.createOscillator(), g = c.createGain(); o.frequency.value = 500 + Math.random() * 3200; g.gain.setValueAtTime(.06 * power, t); g.gain.exponentialRampToValueAtTime(.001, t + .25 + Math.random() * .3); o.connect(g); g.connect(this.bus()); o.start(t); o.stop(t + .6); }
   },
+  boom(power = 1) {
+    if (!this.ctx || !this.on) return; const c = this.ctx, t = c.currentTime;
+    this.nz(t, 1.8 * power, 'lowpass', 7000, .5, 1.6 * power, 120);
+    this.sub(t, 110, 22, 1.1, 1.6 * power);
+    this.nz(t, .5, 'highpass', 2500, .5, 1 * power);
+    for (let k = 0; k < 26; k++) this.nz(t + .1 + Math.random() * 1.2, .05, 'bandpass', 900 + Math.random() * 3000, 3, .35 * power);
+  },
+  roar(level) {
+    if (!this.ctx || !this.on) { return; } const c = this.ctx;
+    if (!this._roar) { const s = c.createBufferSource(); s.buffer = this.noiseBuf(); s.loop = true; const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 520; const g = c.createGain(); g.gain.value = 0; s.connect(lp); lp.connect(g); g.connect(this.out); s.start(); this._roar = { g, lp }; }
+    this._roar.g.gain.setTargetAtTime(level * .9, c.currentTime, .12); this._roar.lp.frequency.setTargetAtTime(380 + level * 900, c.currentTime, .2);
+  },
+  crackle(level) { if (!this.ctx || !this.on) return; this.nz(this.ctx.currentTime, .02 + Math.random() * .03, 'highpass', 1800 + Math.random() * 3000, .7, (.25 + Math.random() * .5) * (0.4 + level)); },
+  whoosh(level) { if (!this.ctx || !this.on) return; const t = this.ctx.currentTime; this.nz(t, .55, 'bandpass', 260, 1.2, .9 + level, 1800); this.sub(t, 90, 40, .4, .5 * level); },
+  flick() { if (!this.ctx || !this.on) return; this.nz(this.ctx.currentTime, .025, 'highpass', 3000, .7, .7); },
+  fwoomp() { if (!this.ctx || !this.on) return; const t = this.ctx.currentTime; this.nz(t, .7, 'lowpass', 300, .7, 1.4, 1400); this.sub(t, 70, 40, .5, .7); },
   noiseBuf() { if (this._nb) return this._nb; const c = this.ctx, len = c.sampleRate; const b = c.createBuffer(1, len, c.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1; return this._nb = b; },
   thud() { if (!this.ctx || !this.on) return; const c = this.ctx, t = c.currentTime; const o = c.createOscillator(), g = c.createGain(); o.frequency.setValueAtTime(90, t); o.frequency.exponentialRampToValueAtTime(45, t + .2); g.gain.setValueAtTime(.9, t); g.gain.exponentialRampToValueAtTime(.001, t + .3); o.connect(g); g.connect(this.out); o.start(t); o.stop(t + .35); },
   boing() { if (!this.ctx || !this.on) return; const c = this.ctx, t = c.currentTime; const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(520, t + .12); o.frequency.exponentialRampToValueAtTime(330, t + .3); g.gain.setValueAtTime(.18, t); g.gain.exponentialRampToValueAtTime(.001, t + .4); o.connect(g); g.connect(this.out); o.start(t); o.stop(t + .45); },
   chime() { if (!this.ctx || !this.on) return; const t = this.ctx.currentTime; [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.note(f, t + i * .14, 1.2, .05, 'sine')); }
 };
-$('#sound').addEventListener('click', (e) => { Sound.toggle(); e.currentTarget.setAttribute('aria-pressed', Sound.on); e.currentTarget.textContent = Sound.on ? '聲音 ON' : '聲音 OFF'; });
+function soundToggle() { Sound.toggle(); const b = $('#sound'); b.setAttribute('aria-pressed', Sound.on); b.textContent = Sound.on ? '聲音 ON' : '聲音 OFF'; }
+$('#sound').addEventListener('click', soundToggle);
 
 /* ---------- scene ---------- */
 function openNow() { const h = new Date().getHours(); return h >= 23 || h < 3; }
@@ -633,14 +693,18 @@ const CRACKS = ['M84 20 L70 70 L92 98 L60 150', 'M140 60 L110 92 L128 130', 'M30
 async function smash(i) {
   const items = S.draft.items, it = items[i], self = isSelf(it.to);
   clearTalk();
-  await say(i === 0 ? ['等一下。拆之前，先砸。', '剛剛那句，是你整理過的版本。現在不用整理了。', '這裡講話不用公平，罵髒話也可以。我不會跟別人說。'] : ['下一件。一樣，先吼，再砸。']);
+  await say(i === 0 ? ['等一下。拆之前，先處決。', '剛剛那句，是你整理過的版本。現在不用整理了。', '這裡講話不用公平，罵髒話也可以。我不會跟別人說。'] : ['下一件。一樣，先吼，再處決。']);
   const st = setStage(`<div class="card">
     <div class="split-head"><span>不講理區 · 第 ${i + 1} / ${items.length} 件</span><span>${kgOf(it)} kg</span></div>
     <p class="grudge">${esc(it.text)}<small>對 ${esc(it.to)} · 放了 ${esc(it.dur)}</small></p>
     <div class="field"><label for="rant">${self ? '對自己吼也可以。你最想罵自己什麼？' : `如果${esc(it.to)}現在就站在你面前，你想吼什麼？`}</label>
       <textarea id="rant" class="rant" rows="3" maxlength="300" placeholder="想到什麼就打什麼。"></textarea></div>
     <p class="rant-meter" id="rant-meter">怒氣 <b>▯▯▯▯▯▯▯▯▯▯</b></p>
-    <div class="row"><button type="button" class="btn red" id="hammer">拿起鐵鎚</button><button type="button" class="btn ghost" id="skip-rant">罵不出來，直接砸</button></div>
+    <p class="lab" style="margin:0;font-size:14px;color:var(--mute)">要怎麼處決它？罵不出來也沒關係，直接選。</p>
+    <div class="methods">
+      <button type="button" class="method" data-m="smash"><b>鐵鎚 · 砸爛</b><span>連續點，砸到稀巴爛為止。</span></button>
+      <button type="button" class="method burn" data-m="burn"><b>打火機 · 燒掉</b><span>按住點火，點畫面煽風，燒成灰。</span></button>
+    </div>
   </div>`);
   const rant = $('#rant', st), meter = $('#rant-meter b', st);
   rant.addEventListener('input', () => {
@@ -652,85 +716,369 @@ async function smash(i) {
     rant.style.boxShadow = lv > 5 ? `0 0 ${lv * 3}px rgba(220,58,80,.5)` : '';
   });
   rant.focus({ preventScroll: true });
-  const go = (text) => arena(i, text);
-  $('#hammer', st).addEventListener('click', () => go(rant.value.trim()));
-  $('#skip-rant', st).addEventListener('click', () => go(''));
+  $$('.method', st).forEach(b => b.addEventListener('click', () => arena(i, rant.value.trim(), b.dataset.m)));
 }
 
-async function arena(i, raw) {
-  const items = S.draft.items, it = items[i], self = isSelf(it.to);
-  const shown = raw || it.text;
-  const need = Math.max(10, Math.min(26, Math.round(8 + kgOf(it) * 2.4 + raw.length / 25)));
+const SOUND_TIP = () => Sound.on ? '' : '<button type="button" class="btn ghost arena-sound">開聲音（更爽）</button>';
+function wireSoundTip(st) { const b = $('.arena-sound', st); if (b) b.addEventListener('click', (e) => { e.stopPropagation(); soundToggle(); b.remove(); }); }
+function choose(st, labels) {
+  return new Promise(res => {
+    const row = $('.after', st); row.hidden = false;
+    row.innerHTML = labels.map((l, k) => `<button type="button" class="btn ${k === 0 ? 'red' : 'solid'}" data-k="${k}">${l}</button>`).join('');
+    $$('button', row).forEach(b => b.addEventListener('click', () => res(+b.dataset.k)));
+    row.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+  });
+}
+function pageShake(power) {
+  const w = $('main.wrap'); if (reduce || !w.animate) return; const a = 6 * power;
+  w.animate([{ transform: 'none' }, { transform: `translate(${-a}px, ${a * .6}px)` }, { transform: `translate(${a}px, ${-a * .8}px)` }, { transform: `translate(${-a * .6}px, ${-a * .4}px)` }, { transform: `translate(${a * .4}px, ${a * .5}px)` }, { transform: 'none' }], { duration: 120 + power * 140 });
+}
+const vib = (p) => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+
+async function arena(i, raw, method) {
+  const it = S.draft.items[i], self = isSelf(it.to);
   clearTalk();
-  await say(['砸。這裡砸東西不用賠。', '砸到碎為止。'], { noScroll: true });
-  const st = setStage(`<div class="arena" id="arena">
-      <span class="hits" id="hits"><b>0</b> 下</span>
-      <button type="button" class="can-big" id="can-big" aria-label="砸罐子">
-        <span class="can-body"><span class="can-text">${esc(shown)}</span></span>
-        <svg class="cracks" viewBox="0 0 168 236" aria-hidden="true">${CRACKS.map(d => `<path d="${d}"/>`).join('')}</svg>
-      </button>
-    </div>
-    <div class="hp" aria-hidden="true"><i id="hp"></i></div>
-    <p class="arena-tip" id="arena-tip">連續點罐子，砸到碎為止。電腦也可以一直按空白鍵。</p>`);
-  const ar = $('#arena', st), can = $('#can-big', st), hp = $('#hp', st), hitsEl = $('#hits b', st), tip = $('#arena-tip', st), cracks = $$('.cracks path', st);
-  ar.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
-  can.focus({ preventScroll: true });
-  const chars = [...shown.replace(/\s/g, '')]; let ci = 0, hits = 0, done = false;
-  const fly = (n, big) => {
-    const r = ar.getBoundingClientRect();
-    for (let k = 0; k < n; k++) {
-      const p = document.createElement('span'); p.className = 'particle'; p.textContent = chars.length ? chars[ci++ % chars.length] : '怨';
-      if (big) p.style.fontSize = (18 + Math.random() * 26) + 'px';
-      ar.appendChild(p);
-      const ang = Math.random() * Math.PI * 2, dist = (big ? 160 : 90) + Math.random() * (big ? 220 : 120);
-      const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist - 40, rot = (Math.random() - .5) * 720;
-      if (reduce || !p.animate) { setTimeout(() => p.remove(), 300); continue; }
-      p.animate([{ transform: 'translate(-50%,-50%) rotate(0)', opacity: 1 }, { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy + 120}px)) rotate(${rot}deg)`, opacity: 0 }], { duration: 700 + Math.random() * 600, easing: 'cubic-bezier(.2,.7,.4,1)' }).onfinish = () => p.remove();
+  await say(method === 'smash' ? ['砸。這裡砸東西不用賠。', '砸到碎為止。'] : ['燒。這裡燒東西不用申請。', '按住那張紙，點火。火起來以後，連續點畫面煽風，火會更大。'], { noScroll: true });
+  it.method = method; it.hits = 0; it.rounds = 0;
+  const AGAIN = method === 'smash' ? ['好，再一罐。', '還不夠？沒關係，我這裡罐子很多。', '砸吧。砸到你覺得夠為止。'] : ['好，再一張。', '紙我這裡多的是。', '燒吧。燒到你覺得夠為止。'];
+  for (let round = 1; ; round++) {
+    const st = setStage('');
+    const n = method === 'smash' ? await runSmash(st, it, raw, round) : await runBurn(st, it, raw, round);
+    if (method === 'smash') it.hits += n; it.rounds = round; save();
+    await sleep(reduce ? 200 : 1500);
+    const k = await choose(st, [method === 'smash' ? '不夠，再來一次' : '不夠，再燒一次', '夠了']);
+    if (k === 1) break;
+    clearTalk(); await say([AGAIN[Math.min(round - 1, 2)]], { noScroll: true });
+  }
+  $('.after', stage()).remove();
+  const box = document.createElement('div'); box.className = 'talk'; stage().appendChild(box);
+  const many = it.rounds > 1 ? (method === 'smash' ? `${it.rounds} 罐，` : `${it.rounds} 張，`) : '';
+  await say(method === 'smash'
+    ? [`${many}外面那一層，你都砸碎了。`, '剩下這個砸不壞的，是心。如果你一點都不在乎，根本不會有這麼多力氣砸。', '撿起來之前，先把這件事判一判。']
+    : [`${many}紙燒完了，灰也散了。`, '剩下這個燒不掉的，是心。如果你一點都不在乎，火不會燒得這麼旺。', '撿起來之前，先把這件事判一判。'], { into: box });
+  verdict(i, raw, self);
+}
+
+/* ---------- fx layer for the hammer: blood-red paint, shards, sparks, shockwaves ---------- */
+function makeFX(ar) {
+  const W = ar.clientWidth, H = ar.clientHeight, dpr = Math.min(devicePixelRatio || 1, 2);
+  const mk = (z) => { const c = document.createElement('canvas'); c.width = W * dpr; c.height = H * dpr; c.style.cssText = `position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:${z}`; ar.appendChild(c); const x = c.getContext('2d'); x.setTransform(dpr, 0, 0, dpr, 0, 0); return x; };
+  const stain = mk(0), fx = mk(3); const P = []; let running = false, last = 0; const floor = H - 6;
+  const R = (a, b) => a + Math.random() * (b - a);
+  const splat = (x, y, s) => {
+    stain.fillStyle = `rgba(${R(120, 170) | 0},${R(8, 20) | 0},${R(20, 34) | 0},.88)`;
+    stain.beginPath(); stain.arc(x, y, s * R(1.2, 2), 0, 6.283); stain.fill();
+    for (let k = 0; k < 5; k++) { stain.beginPath(); stain.arc(x + R(-s * 4, s * 4), y + R(-s * 4, s * 4), R(.6, s * .7), 0, 6.283); stain.fill(); }
+    if (Math.random() < .35 && y < floor - 20) { stain.fillRect(x - s * .3, y, s * .6, R(10, 46)); stain.beginPath(); stain.arc(x, y + R(10, 46), s * .5, 0, 6.283); stain.fill(); }
+  };
+  const drawShard = (c, p) => { c.save(); c.translate(p.x, p.y); c.rotate(p.rot); c.fillStyle = p.col; c.beginPath(); c.moveTo(p.pts[0], p.pts[1]); c.lineTo(p.pts[2], p.pts[3]); c.lineTo(p.pts[4], p.pts[5]); c.closePath(); c.fill(); c.restore(); };
+  const loop = (t) => {
+    const dt = Math.min(.05, (t - (last || t)) / 1000); last = t; fx.clearRect(0, 0, W, H);
+    for (let k = P.length - 1; k >= 0; k--) {
+      const p = P[k]; p.life -= dt;
+      if (p.type === 'ring') { p.r += p.vr * dt; const a = Math.max(0, p.life / p.max); fx.strokeStyle = `rgba(${p.c},${a})`; fx.lineWidth = p.w * a + .5; fx.beginPath(); fx.arc(p.x, p.y, p.r, 0, 6.283); fx.stroke(); }
+      else if (p.type === 'smoke') { p.r += 40 * dt; p.y += p.vy * dt; fx.fillStyle = `rgba(40,40,46,${Math.max(0, p.life / p.max) * .45})`; fx.beginPath(); fx.arc(p.x, p.y, p.r, 0, 6.283); fx.fill(); }
+      else {
+        p.vy += (p.g || 0) * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += (p.vr || 0) * dt;
+        if (p.type === 'drop') {
+          if (p.y >= floor) { splat(p.x, floor - R(0, 3), p.s); p.life = 0; }
+          else if (p.x < 3 || p.x > W - 3 || p.y < 3) { splat(Math.min(W - 3, Math.max(3, p.x)), Math.max(3, p.y), p.s * 1.2); p.life = 0; }
+          else { fx.fillStyle = '#c0182e'; fx.beginPath(); fx.arc(p.x, p.y, p.s, 0, 6.283); fx.fill(); }
+        } else if (p.type === 'shard') {
+          if (p.y >= floor) { p.y = floor; p.vy *= -.35; p.vx *= .55; p.vr *= .5; if (Math.abs(p.vy) < 40) { drawShard(stain, p); p.life = 0; continue; } }
+          if (p.x < 0 || p.x > W) p.vx *= -.6;
+          drawShard(fx, p);
+        } else if (p.type === 'spark') {
+          const a = Math.max(0, p.life / p.max); fx.strokeStyle = `rgba(255,${(200 + 55 * a) | 0},120,${a})`; fx.lineWidth = 2;
+          fx.beginPath(); fx.moveTo(p.x, p.y); fx.lineTo(p.x - p.vx * .035, p.y - p.vy * .035); fx.stroke();
+        }
+      }
+      if (p.life <= 0) P.splice(k, 1);
+    }
+    if (P.length && fx.canvas.isConnected) requestAnimationFrame(loop); else running = false;
+  };
+  const add = (p) => { P.push(p); if (!running) { running = true; last = 0; requestAnimationFrame(loop); } };
+  const COLS = ['#dc3a50', '#b02436', '#f27384', '#c8ced8', '#7d1525'];
+  const shard = (x, y, sp, big) => { const s = big ? R(6, 16) : R(4, 9); add({ type: 'shard', x, y, vx: R(-sp, sp), vy: R(-sp * 1.2, -sp * .2), g: 900, rot: R(0, 6), vr: R(-14, 14), life: 4, max: 4, col: COLS[(Math.random() * COLS.length) | 0], pts: [R(-s, 0), R(-s, 0), R(0, s), R(-s * .5, 0), R(-s * .2, s * .3), R(0, s)] }); };
+  const drop = (x, y, sp) => add({ type: 'drop', x, y, vx: R(-sp, sp), vy: R(-sp * 1.3, sp * .3), g: 700, s: R(1.5, 4.5), life: 4, max: 4 });
+  const spark = (x, y, sp) => { const a = R(0, 6.283), v = R(sp * .4, sp); add({ type: 'spark', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: 300, life: R(.2, .45), max: .45 }); };
+  return {
+    hit(x, y, power) {
+      if (reduce) return;
+      add({ type: 'ring', x, y, r: 6, vr: 520, w: 5, c: '255,255,255', life: .22, max: .22 });
+      for (let k = 0; k < 10 + power * 10; k++) spark(x, y, 700);
+      for (let k = 0; k < 6 + power * 16; k++) drop(x, y, 260 + power * 260);
+      if (Math.random() < .4 + power * .5) for (let k = 0; k < 1 + power * 4; k++) shard(x, y, 320, false);
+    },
+    explode(x, y) {
+      if (reduce) return;
+      [0, 90, 200].forEach((d, k) => setTimeout(() => add({ type: 'ring', x, y, r: 10, vr: 900 - k * 200, w: 10 - k * 3, c: k ? '255,90,90' : '255,255,255', life: .5, max: .5 }), d));
+      for (let k = 0; k < 90; k++) spark(x, y, 1300);
+      for (let k = 0; k < 140; k++) drop(x, y, 900);
+      for (let k = 0; k < 46; k++) shard(x, y, 700, true);
+      for (let k = 0; k < 12; k++) add({ type: 'smoke', x: x + R(-40, 40), y: y + R(-30, 30), vy: R(-50, -10), r: R(10, 26), life: R(1, 2), max: 2 });
     }
   };
-  const popWord = (w) => {
-    const p = document.createElement('span'); p.className = 'pop'; p.textContent = w;
-    p.style.left = (20 + Math.random() * 60) + '%'; p.style.top = (15 + Math.random() * 55) + '%'; ar.appendChild(p);
-    if (p.animate && !reduce) p.animate([{ transform: 'scale(.4)', opacity: 1 }, { transform: 'scale(1.3) translateY(-20px)', opacity: 0 }], { duration: 600 }).onfinish = () => p.remove(); else setTimeout(() => p.remove(), 400);
+}
+
+const HAMMER = `<svg class="hammer" viewBox="0 0 80 80" aria-hidden="true"><line x1="22" y1="15" x2="70" y2="74" stroke="#7a4a26" stroke-width="7" stroke-linecap="round"/><line x1="60" y1="61" x2="70" y2="74" stroke="#2b2b30" stroke-width="8" stroke-linecap="round"/><g transform="rotate(-39 22 15)"><rect x="3" y="5" width="38" height="20" rx="3" fill="#aab3c2"/><rect x="3" y="5" width="8" height="20" rx="2" fill="#69717f"/><rect x="11" y="5" width="30" height="5" fill="#d3d9e3"/></g></svg>`;
+
+function runSmash(st, it, raw, round) {
+  return new Promise(resolve => {
+    const shown = raw || it.text;
+    const need = round === 1 ? Math.max(10, Math.min(26, Math.round(8 + kgOf(it) * 2.4 + raw.length / 25))) : 8 + ((Math.random() * 6) | 0);
+    st.innerHTML = `<div class="arena" id="arena">
+        <span class="hits" id="hits"><b>0</b> 下${round > 1 ? ` · 第 ${round} 罐` : ''}</span>${SOUND_TIP()}
+        <button type="button" class="can-big" id="can-big" aria-label="砸罐子">
+          <span class="can-body"><span class="can-text">${esc(shown)}</span></span>
+          <svg class="cracks" viewBox="0 0 168 236" aria-hidden="true">${CRACKS.map(d => `<path d="${d}"/>`).join('')}</svg>
+        </button>${HAMMER}
+        <span class="redflash" aria-hidden="true"></span>
+      </div>
+      <div class="hp" aria-hidden="true"><i id="hp"></i></div>
+      <p class="arena-tip" id="arena-tip">${round === 1 ? '連續點罐子，砸到碎為止。電腦也可以一直按空白鍵。' : '新的一罐。砸。'}</p>
+      <div class="row after" hidden></div>`;
+    wireSoundTip(st);
+    const ar = $('#arena', st), can = $('#can-big', st), hp = $('#hp', st), hitsEl = $('#hits b', st), tip = $('#arena-tip', st), cracks = $$('.cracks path', st), ham = $('.hammer', st), red = $('.redflash', st), txt = $('.can-text', st);
+    if (round === 1) ar.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+    can.focus({ preventScroll: true });
+    const fx = makeFX(ar);
+    const chars = [...shown.replace(/\s/g, '')]; let ci = 0, hits = 0, done = false, hamT;
+    const fly = (n, big) => {
+      for (let k = 0; k < n; k++) {
+        const p = document.createElement('span'); p.className = 'particle'; p.textContent = chars.length ? chars[ci++ % chars.length] : '怨';
+        if (big) p.style.fontSize = (18 + Math.random() * 30) + 'px';
+        ar.appendChild(p);
+        const ang = Math.random() * Math.PI * 2, dist = (big ? 180 : 100) + Math.random() * (big ? 260 : 140);
+        const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist - 40, rot = (Math.random() - .5) * 900;
+        if (reduce || !p.animate) { setTimeout(() => p.remove(), 300); continue; }
+        p.animate([{ transform: 'translate(-50%,-50%) rotate(0) scale(1.4)', opacity: 1 }, { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy + 140}px)) rotate(${rot}deg) scale(.7)`, opacity: 0 }], { duration: 600 + Math.random() * 600, easing: 'cubic-bezier(.15,.8,.4,1)' }).onfinish = () => p.remove();
+      }
+    };
+    const popWord = (w, big) => {
+      const p = document.createElement('span'); p.className = 'pop' + (big ? ' big' : ''); p.textContent = w;
+      p.style.left = (14 + Math.random() * 56) + '%'; p.style.top = (12 + Math.random() * 56) + '%'; ar.appendChild(p);
+      if (p.animate && !reduce) p.animate([{ transform: 'scale(2.2) rotate(-8deg)', opacity: 1 }, { transform: 'scale(1) rotate(4deg)', opacity: 1, offset: .25 }, { transform: 'scale(1.15) translateY(-24px)', opacity: 0 }], { duration: 700 }).onfinish = () => p.remove(); else setTimeout(() => p.remove(), 400);
+    };
+    const swing = (x, y) => {
+      ham.style.left = (x - 18) + 'px'; ham.style.top = (y - 14) + 'px'; ham.style.opacity = '1';
+      if (ham.animate && !reduce) ham.animate([{ transform: 'rotate(62deg)' }, { transform: 'rotate(-6deg)', offset: .55 }, { transform: 'rotate(14deg)' }], { duration: 130, easing: 'ease-in' });
+      clearTimeout(hamT); hamT = setTimeout(() => ham.style.opacity = '0', 700);
+    };
+    const hit = (cx, cy) => {
+      if (done) return;
+      const r = ar.getBoundingClientRect(), cr = can.getBoundingClientRect();
+      const x = cx != null ? cx - r.left : cr.left - r.left + cr.width / 2 + (Math.random() - .5) * 60;
+      const y = cy != null ? cy - r.top : cr.top - r.top + cr.height / 2 + (Math.random() - .5) * 80;
+      hits++; hitsEl.textContent = hits; const left = Math.max(0, need - hits); const dmg = hits / need;
+      hp.style.width = (left / need * 100) + '%';
+      cracks.forEach((c, k) => c.classList.toggle('on', k < Math.ceil(dmg * cracks.length)));
+      const rx = (Math.random() - .5) * 26 * (1 + dmg), sx = 1 - dmg * .22 + Math.random() * .05, sy = 1 - dmg * .4;
+      can.style.transform = `translate(${(Math.random() - .5) * 14}px, ${dmg * 26}px) rotate(${rx}deg) scale(${sx}, ${sy}) skew(${(Math.random() - .5) * 16 * dmg}deg)`;
+      can.classList.remove('hurt'); void can.offsetWidth; can.classList.add('hurt');
+      txt.style.textShadow = `${3 + dmg * 5}px 0 rgba(0,255,255,.7), -${3 + dmg * 5}px 0 rgba(255,0,60,.8)`;
+      red.style.opacity = String(.18 + dmg * .32); setTimeout(() => red.style.opacity = '0', 70);
+      ar.classList.remove('quake'); void ar.offsetWidth; ar.classList.add('quake');
+      swing(x, y); fx.hit(x, y, dmg); pageShake(.4 + dmg);
+      fly(3 + Math.floor(dmg * 6));
+      if (hits % 2 === 0 || left <= 2) popWord(left === 1 ? '最後一下！' : POPS[Math.floor(Math.random() * POPS.length)], left === 1);
+      Sound.smash(.7 + dmg * .8); vib(25 + dmg * 45);
+      if (hits === Math.floor(need / 2)) tip.textContent = '還沒碎。用力。';
+      if (left === 0) explode();
+    };
+    can.addEventListener('pointerdown', (e) => { e.preventDefault(); hit(e.clientX, e.clientY); });
+    can.addEventListener('click', (e) => { if (e.detail === 0) hit(); });
+    can.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!e.repeat || hits % 2) hit(); } });
+    const explode = async () => {
+      done = true; tip.textContent = '……';
+      can.style.transform += ' scale(.9)'; await sleep(reduce ? 0 : 140);
+      const r = ar.getBoundingClientRect(), cr = can.getBoundingClientRect();
+      const cx = cr.left - r.left + cr.width / 2, cy = cr.top - r.top + cr.height / 2;
+      can.style.transition = 'transform .18s, opacity .18s'; can.style.transform = 'scale(1.6)'; can.style.opacity = '0';
+      const fl = document.createElement('span'); fl.className = 'flash'; ar.appendChild(fl); setTimeout(() => fl.remove(), 900);
+      fx.explode(cx, cy); fly(48, true); popWord('轟！！', true);
+      Sound.boom(); pageShake(3); setTimeout(() => pageShake(2), 180); setTimeout(() => pageShake(1), 380);
+      ar.classList.add('rumble'); setTimeout(() => ar.classList.remove('rumble'), 900);
+      vib([90, 40, 160, 40, 60]);
+      tip.textContent = `碎了。這一罐砸了 ${hits} 下。`; hp.style.width = '0'; ham.style.opacity = '0';
+      await sleep(800); can.remove();
+      const heart = document.createElement('button'); heart.type = 'button'; heart.className = 'heart-core'; heart.textContent = '心'; heart.setAttribute('aria-label', '一顆砸不壞的心');
+      ar.appendChild(heart); let bonks = 0;
+      heart.addEventListener('click', (e) => {
+        bonks++; heart.classList.remove('bonk'); void heart.offsetWidth; heart.classList.add('bonk'); Sound.boing();
+        const rr = ar.getBoundingClientRect(); swing(e.clientX ? e.clientX - rr.left : rr.width / 2, e.clientY ? e.clientY - rr.top : rr.height / 2);
+        tip.textContent = ['砸不壞的。', '真的砸不壞。', '你看，它還在。'][Math.min(bonks - 1, 2)];
+      });
+      await sleep(1200); if (!bonks) tip.textContent = '罐子碎了。中間剩下一個東西。試著砸砸看。';
+      resolve(hits);
+    };
+  });
+}
+
+/* ---------- the lighter ---------- */
+function glowSprite(r, stops) { const c = document.createElement('canvas'); c.width = c.height = r * 2; const x = c.getContext('2d'); const g = x.createRadialGradient(r, r, 0, r, r, r); stops.forEach(([o, col]) => g.addColorStop(o, col)); x.fillStyle = g; x.fillRect(0, 0, r * 2, r * 2); return c; }
+let SPR = null;
+function sprites() {
+  if (SPR) return SPR;
+  SPR = {
+    core: glowSprite(32, [[0, 'rgba(255,255,230,1)'], [.35, 'rgba(255,220,120,.9)'], [1, 'rgba(255,160,40,0)']]),
+    mid: glowSprite(32, [[0, 'rgba(255,190,70,.95)'], [.45, 'rgba(255,110,20,.7)'], [1, 'rgba(220,40,10,0)']]),
+    end: glowSprite(32, [[0, 'rgba(230,70,20,.7)'], [.5, 'rgba(160,20,10,.35)'], [1, 'rgba(80,0,0,0)']]),
+    smoke: glowSprite(32, [[0, 'rgba(60,58,62,.55)'], [1, 'rgba(40,40,44,0)']])
   };
-  const hit = () => {
-    if (done) return;
-    hits++; hitsEl.textContent = hits; const left = Math.max(0, need - hits); const dmg = hits / need;
-    hp.style.width = (left / need * 100) + '%';
-    cracks.forEach((c, k) => c.classList.toggle('on', k < Math.ceil(dmg * cracks.length)));
-    const rx = (Math.random() - .5) * 18 * (1 + dmg), sx = 1 - dmg * .18 + Math.random() * .04, sy = 1 - dmg * .32;
-    can.style.transform = `rotate(${rx}deg) scale(${sx}, ${sy})`;
-    ar.classList.remove('quake'); void ar.offsetWidth; ar.classList.add('quake');
-    fly(2 + Math.floor(dmg * 4)); if (hits % 3 === 0 || left <= 2) popWord(left === 1 ? '最後一下！' : POPS[Math.floor(Math.random() * POPS.length)]);
-    Sound.smash(.6 + dmg * .6); try { navigator.vibrate && navigator.vibrate(20 + dmg * 30); } catch (e) {}
-    if (hits === Math.floor(need / 2)) tip.textContent = '還沒碎。繼續。';
-    if (left === 0) explode();
-  };
-  can.addEventListener('pointerdown', (e) => { e.preventDefault(); hit(); });
-  can.addEventListener('click', (e) => { if (e.detail === 0) hit(); });
-  can.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!e.repeat || hits % 2) hit(); } });
-  const explode = async () => {
-    done = true; can.style.transition = 'transform .25s, opacity .25s'; can.style.transform = 'scale(1.3)'; can.style.opacity = '0';
-    const fl = document.createElement('span'); fl.className = 'flash'; ar.appendChild(fl); setTimeout(() => fl.remove(), 600);
-    fly(36, true); Sound.smash(1.6); setTimeout(() => Sound.smash(1.2), 90);
-    try { navigator.vibrate && navigator.vibrate([60, 40, 120]); } catch (e) {}
-    it.hits = hits; save();
-    tip.textContent = `碎了。一共砸了 ${hits} 下。`; hp.style.width = '0';
-    await sleep(700); can.remove();
-    const heart = document.createElement('button'); heart.type = 'button'; heart.className = 'heart-core'; heart.textContent = '心'; heart.setAttribute('aria-label', '一顆砸不壞的心');
-    ar.appendChild(heart);
-    let bonks = 0;
-    heart.addEventListener('click', () => {
-      bonks++; heart.classList.remove('bonk'); void heart.offsetWidth; heart.classList.add('bonk'); Sound.boing();
-      tip.textContent = ['砸不壞的。', '真的砸不壞。', '你看，它還在。'][Math.min(bonks - 1, 2)];
+  return SPR;
+}
+function wrapText(c, text, maxW) { const lines = []; let line = ''; for (const ch of text) { if (ch === '\n') { lines.push(line); line = ''; continue; } if (c.measureText(line + ch).width > maxW && line) { lines.push(line); line = ch; } else line += ch; } if (line) lines.push(line); return lines; }
+
+function runBurn(st, it, raw, round) {
+  return new Promise(resolve => {
+    st.innerHTML = `<div class="arena burn" id="arena">
+        <span class="hits">火力 <b id="heat">▯▯▯▯▯</b>${round > 1 ? ` · 第 ${round} 張` : ''}</span>${SOUND_TIP()}
+        <canvas class="burn-cv" aria-label="一張寫著怨念的紙。按住點火，點畫面煽風。"></canvas>
+        <span class="redflash orange" aria-hidden="true"></span>
+      </div>
+      <div class="hp" aria-hidden="true"><i id="hp"></i></div>
+      <p class="arena-tip" id="arena-tip">${round === 1 ? '按住紙，點火。' : '新的一張。點火。'}</p>
+      <div class="row after" hidden></div>`;
+    wireSoundTip(st);
+    const ar = $('#arena', st), cv = $('.burn-cv', st), tip = $('#arena-tip', st), hp = $('#hp', st), heatEl = $('#heat', st), flash = $('.redflash', st);
+    if (round === 1) ar.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+    const W = ar.clientWidth, H = ar.clientHeight, dpr = Math.min(devicePixelRatio || 1, 2);
+    cv.width = W * dpr; cv.height = H * dpr; const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const S2 = sprites();
+    const pw = Math.min(250, W - 56), ph = Math.min(290, H - 60), px = (W - pw) / 2, py = (H - ph) / 2 + 10;
+    const paper = document.createElement('canvas'); paper.width = pw * dpr; paper.height = ph * dpr; const pc = paper.getContext('2d'); pc.setTransform(dpr, 0, 0, dpr, 0, 0);
+    pc.fillStyle = '#ece5d3'; pc.fillRect(0, 0, pw, ph);
+    pc.strokeStyle = 'rgba(90,110,150,.16)'; for (let y = 40; y < ph; y += 26) { pc.beginPath(); pc.moveTo(10, y); pc.lineTo(pw - 10, y); pc.stroke(); }
+    pc.fillStyle = '#7a7163'; pc.font = '12px "Noto Sans TC", sans-serif'; wrapText(pc, `對 ${it.to}：${it.text}`, pw - 28).slice(0, 2).forEach((l, k) => pc.fillText(l, 14, 22 + k * 16));
+    pc.fillStyle = '#b3172d'; pc.font = '900 20px "Noto Serif TC", serif';
+    const lines = wrapText(pc, raw || it.text, pw - 32).slice(0, 9); const top = Math.max(64, ph / 2 - lines.length * 14);
+    lines.forEach((l, k) => pc.fillText(l, 16, top + k * 28));
+    const cs = 6, cols = Math.ceil(pw / cs), rows = Math.ceil(ph / cs), N = cols * rows;
+    const fuel = new Float32Array(N).fill(1), burning = new Uint8Array(N);
+    const mkG = () => { const k = document.createElement('canvas'); k.width = cols; k.height = rows; return k.getContext('2d'); };
+    const holeC = mkG(), charC = mkG(), glowC = mkG(); const holeD = holeC.createImageData(cols, rows), charD = charC.createImageData(cols, rows), glowD = glowC.createImageData(cols, rows);
+    let nBurning = 0, nBurnt = 0, ever = false, boost = 1, done = false, finishing = false;
+    const P = []; const R = (a, b) => a + Math.random() * (b - a);
+    const ignite = (idx) => { if (idx < 0 || idx >= N || burning[idx] || fuel[idx] <= 0) return false; burning[idx] = 1; nBurning++; return true; };
+    const igniteAt = (x, y, rad) => {
+      const gx = Math.floor((x - px) / cs), gy = Math.floor((y - py) / cs); let ok = false;
+      for (let dy = -rad; dy <= rad; dy++) for (let dx = -rad; dx <= rad; dx++) { const X = gx + dx, Y = gy + dy; if (X >= 0 && Y >= 0 && X < cols && Y < rows && ignite(Y * cols + X)) ok = true; }
+      if (ok && !ever) { ever = true; Sound.fwoomp(); tip.textContent = '燒起來了。連續點畫面煽風，火會更大。'; }
+      return ok;
+    };
+    let lighter = null, downAt = 0, holdT = null;
+    cv.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); cv.setPointerCapture?.(e.pointerId);
+      const r = cv.getBoundingClientRect(); lighter = { x: e.clientX - r.left, y: e.clientY - r.top, lit: false }; downAt = performance.now();
+      Sound.flick();
+      clearTimeout(holdT); holdT = setTimeout(() => { if (lighter) lighter.lit = true; }, 320);
     });
-    await sleep(1400);
-    tip.textContent = '罐子碎了。中間剩下一個東西。你可以試著砸砸看。';
-    await sleep(2600);
-    const box = document.createElement('div'); box.className = 'talk'; stage().appendChild(box);
-    await say(['外面那一層，你都砸碎了。', '剩下這個砸不壞的，是心。如果你一點都不在乎，根本不會有這麼多力氣砸。', '撿起來之前，先把這件事判一判。'], { into: box });
-    verdict(i, raw, self);
-  };
+    cv.addEventListener('pointermove', (e) => { if (!lighter) return; const r = cv.getBoundingClientRect(); lighter.x = e.clientX - r.left; lighter.y = e.clientY - r.top; });
+    const up = () => {
+      if (!lighter) return; const quick = performance.now() - downAt < 300; const wasLit = lighter.lit; const { x, y } = lighter; lighter = null; clearTimeout(holdT);
+      if (quick && !wasLit && nBurning > 0 && !finishing) fan(x, y);
+      else if (quick && !ever) tip.textContent = '按久一點，打火機才點得著。';
+    };
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+    cv.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!ever) igniteAt(px + pw / 2, py + ph - 8, 2); else fan(W / 2, H / 2); } });
+    cv.tabIndex = 0;
+    const fan = (x, y) => {
+      boost = Math.min(6, boost + 1.1); Sound.whoosh(boost / 6); vib(30);
+      const ids = []; for (let k = 0; k < N && ids.length < 60; k++) if (burning[k] && Math.random() < .5) ids.push(k);
+      ids.forEach(k => { for (let j = 0; j < 2; j++) spawnFlame(k, 1.8); });
+      flash.style.opacity = String(.12 + boost * .04); setTimeout(() => flash.style.opacity = '0', 90);
+      pageShake(.3 + boost * .15);
+      const w = document.createElement('span'); w.className = 'pop'; w.textContent = ['呼！', '燒！', '再大！', '轟！'][(Math.random() * 4) | 0]; w.style.left = (x / W * 100 - 6) + '%'; w.style.top = (y / H * 100 - 6) + '%'; ar.appendChild(w);
+      if (w.animate && !reduce) w.animate([{ transform: 'scale(1.8)', opacity: 1 }, { transform: 'scale(1) translateY(-30px)', opacity: 0 }], { duration: 600 }).onfinish = () => w.remove(); else setTimeout(() => w.remove(), 300);
+    };
+    const spawnFlame = (idx, big = 1) => {
+      if (P.length > 900 || reduce) return;
+      const x = px + (idx % cols) * cs + R(0, cs), y = py + Math.floor(idx / cols) * cs + R(0, cs);
+      const life = R(.45, 1.0) * (0.8 + boost * .12);
+      P.push({ k: 'f', x, y, vx: R(-18, 18), vy: R(-70, -150) * (0.8 + boost * .25), s: R(8, 20) * big * (0.85 + boost * .15), life, max: life });
+      if (Math.random() < .08 * boost) P.push({ k: 'e', x, y, vx: R(-40, 40), vy: R(-120, -260), s: R(1, 2.2), life: R(.8, 1.8), max: 1.8 });
+      if (Math.random() < .05) P.push({ k: 's', x, y: y - 20, vx: R(-10, 10), vy: R(-30, -60), s: R(14, 28), life: R(1.2, 2.4), max: 2.4 });
+    };
+    let last = 0, crackT = 0;
+    const frame = (t) => {
+      if (!cv.isConnected) { Sound.roar(0); return; }
+      const dt = Math.min(.05, (t - (last || t)) / 1000); last = t;
+      boost = 1 + (boost - 1) * Math.pow(.55, dt);
+      if (lighter && lighter.lit && !finishing) igniteAt(lighter.x, lighter.y, 1);
+      if (nBurning) {
+        const rate = 1 + (boost - 1) * .9;
+        for (let idx = 0; idx < N; idx++) {
+          if (!burning[idx]) continue;
+          fuel[idx] -= dt * R(.6, 1.0) * (0.7 + boost * .3);
+          const x = idx % cols, up = idx - cols, dn = idx + cols;
+          const tr = (j, p) => { if (Math.random() < p * dt * rate) ignite(j); };
+          tr(up, 2.6); if (x > 0) { tr(idx - 1, 1.2); tr(up - 1, 1.4); } if (x < cols - 1) { tr(idx + 1, 1.2); tr(up + 1, 1.4); } tr(dn, .5);
+          if (Math.random() < .55 * dt * 60 * .18 * (0.6 + boost * .4)) spawnFlame(idx);
+          if (fuel[idx] <= 0) { fuel[idx] = 0; burning[idx] = 0; nBurning--; nBurnt++; if (Math.random() < .25) P.push({ k: 'a', x: px + x * cs, y: py + Math.floor(idx / cols) * cs, vx: R(-20, 20), vy: R(-40, 10), s: R(1, 3), life: R(1.5, 3), max: 3 }); }
+        }
+      }
+      const frac = nBurnt / N; hp.style.width = ((1 - frac) * 100) + '%';
+      const lvl = Math.min(5, Math.ceil(Math.min(1, nBurning / (N * .08)) * 3 + (boost - 1) * .6)); heatEl.textContent = '▮'.repeat(lvl) + '▯'.repeat(5 - lvl);
+      Sound.roar(Math.min(1, nBurning / (N * .1)) * (0.5 + boost * .12));
+      crackT -= dt; if (nBurning && crackT <= 0) { Sound.crackle(Math.min(1, nBurning / (N * .05))); crackT = R(.03, .16) / (0.5 + boost * .3); }
+      c.clearRect(0, 0, W, H);
+      c.globalCompositeOperation = 'source-over'; c.drawImage(paper, px, py, pw, ph);
+      const hd = holeD.data, cd = charD.data, gd = glowD.data;
+      for (let idx = 0; idx < N; idx++) {
+        const f = fuel[idx], o = idx * 4;
+        hd[o + 3] = f <= 0 ? 255 : 0;
+        cd[o] = 28; cd[o + 1] = 12; cd[o + 2] = 4; cd[o + 3] = f >= 1 ? 0 : Math.min(242, (1 - f) * 360);
+        if (burning[idx]) { gd[o] = 255; gd[o + 1] = 90 + f * 110; gd[o + 2] = 20; gd[o + 3] = 150 + Math.random() * 105; } else gd[o + 3] = 0;
+      }
+      holeC.putImageData(holeD, 0, 0); charC.putImageData(charD, 0, 0); glowC.putImageData(glowD, 0, 0);
+      c.imageSmoothingEnabled = true;
+      c.globalCompositeOperation = 'source-atop'; c.drawImage(charC.canvas, px, py, cols * cs, rows * cs);
+      c.globalCompositeOperation = 'destination-out'; c.drawImage(holeC.canvas, px - 1, py - 1, cols * cs + 2, rows * cs + 2);
+      c.globalCompositeOperation = 'lighter'; c.drawImage(glowC.canvas, px, py, cols * cs, rows * cs);
+      c.globalCompositeOperation = 'source-over';
+      for (let k = P.length - 1; k >= 0; k--) { const p = P[k]; if (p.k !== 's') continue; p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.s += 18 * dt; if (p.life <= 0) { P.splice(k, 1); continue; } c.globalAlpha = p.life / p.max * .8; c.drawImage(S2.smoke, p.x - p.s, p.y - p.s, p.s * 2, p.s * 2); }
+      c.globalCompositeOperation = 'lighter';
+      for (let k = P.length - 1; k >= 0; k--) {
+        const p = P[k]; if (p.k === 's' || p.k === 'a') continue;
+        p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; if (p.k === 'e') p.vx += R(-200, 200) * dt;
+        if (p.life <= 0) { P.splice(k, 1); continue; }
+        const a = p.life / p.max;
+        if (p.k === 'f') { const spr = a > .66 ? S2.core : a > .33 ? S2.mid : S2.end; const s = p.s * (0.6 + a * .6); c.globalAlpha = Math.min(1, a * 1.3); c.drawImage(spr, p.x - s, p.y - s, s * 2, s * 2); }
+        else { c.globalAlpha = a; c.fillStyle = '#ffd27a'; c.fillRect(p.x, p.y, p.s, p.s); }
+      }
+      c.globalCompositeOperation = 'source-over';
+      for (let k = P.length - 1; k >= 0; k--) { const p = P[k]; if (p.k !== 'a') continue; p.life -= dt; p.vy += 60 * dt; p.x += p.vx * dt + Math.sin(t / 300 + k) * .3; p.y += p.vy * dt; if (p.life <= 0 || p.y > H) { P.splice(k, 1); continue; } c.globalAlpha = Math.min(1, p.life); c.fillStyle = '#3b3632'; c.fillRect(p.x, p.y, p.s, p.s); }
+      c.globalAlpha = 1;
+      if (lighter) {
+        c.fillStyle = '#c8202e'; c.fillRect(lighter.x - 7, lighter.y + 6, 14, 30); c.fillStyle = '#c8ced8'; c.fillRect(lighter.x - 7, lighter.y, 14, 7);
+        if (lighter.lit) { c.globalCompositeOperation = 'lighter'; const s = 12 + Math.random() * 4; c.drawImage(S2.core, lighter.x - s, lighter.y - s * 1.6, s * 2, s * 2); c.globalCompositeOperation = 'source-over'; }
+      }
+      if (!done && ever && !finishing) {
+        const remain = 1 - frac;
+        if (nBurning === 0 && remain > .03) tip.textContent = '火熄了，還有沒燒到的地方。再按住點一次。';
+        if (remain <= .03 || (nBurning === 0 && remain <= .03)) finish();
+      }
+      requestAnimationFrame(frame);
+    };
+    const finish = async () => {
+      finishing = true; done = true;
+      for (let idx = 0; idx < N; idx++) { if (fuel[idx] > 0) { for (let j = 0; j < 2; j++) spawnFlame(idx, 2.4); fuel[idx] = Math.min(fuel[idx], .3); if (!burning[idx]) { burning[idx] = 1; nBurning++; } } }
+      boost = 6; Sound.boom(.7); Sound.whoosh(1); vib([60, 30, 120]);
+      flash.style.opacity = '.55'; setTimeout(() => flash.style.opacity = '0', 160);
+      pageShake(2.4); setTimeout(() => pageShake(1.2), 200);
+      const w = document.createElement('span'); w.className = 'pop big'; w.textContent = '轟！！'; w.style.left = '30%'; w.style.top = '30%'; ar.appendChild(w);
+      if (w.animate && !reduce) w.animate([{ transform: 'scale(2.6)', opacity: 1 }, { transform: 'scale(1.2) translateY(-40px)', opacity: 0 }], { duration: 900 }).onfinish = () => w.remove(); else setTimeout(() => w.remove(), 400);
+      tip.textContent = '燒光了。';
+      await sleep(reduce ? 300 : 2200);
+      const heart = document.createElement('button'); heart.type = 'button'; heart.className = 'heart-core ember'; heart.textContent = '心'; heart.setAttribute('aria-label', '一顆燒不掉的心');
+      ar.appendChild(heart); let bonks = 0;
+      heart.addEventListener('click', () => { bonks++; heart.classList.remove('bonk'); void heart.offsetWidth; heart.classList.add('bonk'); Sound.flick(); tip.textContent = ['燒不掉的。', '真的燒不掉。', '你看，它還亮著。'][Math.min(bonks - 1, 2)]; });
+      await sleep(1000); if (!bonks) tip.textContent = '紙燒光了。灰裡面，剩下一個東西。試著燒燒看。';
+      resolve(1);
+    };
+    requestAnimationFrame(frame);
+  });
 }
 
 async function verdict(i, raw, self) {
@@ -776,7 +1124,7 @@ async function machine() {
   line('<span class="d">回收機啟動 · 垃圾車音樂播放中</span>'); tick(); await sleep(W);
   let totalReplay = 0; const needCount = {};
   for (const it of items) {
-    ride(it.text, false); line(`<span class="r">回收碎片：${esc(it.text)}${it.hits ? ` · 砸了 ${it.hits} 下` : ''}</span>`); tick(); await sleep(W);
+    ride(it.text, false); line(`<span class="r">回收碎片：${esc(it.text)}${it.method === 'burn' ? ` · 燒了 ${it.rounds} 張` : it.hits ? ` · 砸了 ${it.hits} 下` : ''}</span>`); tick(); await sleep(W);
     totalReplay += replays(it); it.needs.forEach(n => needCount[n] = (needCount[n] || 0) + 1);
     line(`<span class="d">分離 夗／心 · 蒸發重播 約 ${replays(it).toLocaleString()} 次</span>`);
     if (it.other) { ride(it.other, true); line(`<span class="g">回收為念：${esc(it.other)}</span>`); }
@@ -786,7 +1134,7 @@ async function machine() {
   line(`<span class="d">翻來覆去 合計蒸發 約 ${totalReplay.toLocaleString()} 次</span>`); tick(); await sleep(W);
   line(`<span class="g">取出底下的心：${Object.entries(needCount).map(([n, c]) => `${esc(n)}${c > 1 ? ' ×' + c : ''}`).join('、')}</span>`); tick();
   setBin(totalKg(items), 'gold'); Sound.chime(); await sleep(W * 1.5);
-  const rc = { ts: Date.now(), date: fmtDate(new Date()), time: new Date().toTimeString().slice(0, 5), no: 'YN-' + Math.floor(10000000 + Math.random() * 89999999), items: items.map(i => ({ to: i.to, text: i.text, dur: i.dur, kg: kgOf(i), other: i.other, needs: i.needs, hits: i.hits || 0, stamp: i.stamp || '' })), kg: totalKg(items), hits: items.reduce((a, i) => a + (i.hits || 0), 0), replay: totalReplay, needs: Object.keys(needCount), name: '' };
+  const rc = { ts: Date.now(), date: fmtDate(new Date()), time: new Date().toTimeString().slice(0, 5), no: 'YN-' + Math.floor(10000000 + Math.random() * 89999999), items: items.map(i => ({ to: i.to, text: i.text, dur: i.dur, kg: kgOf(i), other: i.other, needs: i.needs, hits: i.hits || 0, stamp: i.stamp || '', method: i.method || '', rounds: i.rounds || 0 })), kg: totalKg(items), hits: items.reduce((a, i) => a + (i.method === 'burn' ? 0 : (i.hits || 0)), 0), burns: items.reduce((a, i) => a + (i.method === 'burn' ? i.rounds || 0 : 0), 0), replay: totalReplay, needs: Object.keys(needCount), name: '' };
   S.receipts.push(rc); S.draft = null; save(); renderLedger();
   receipt(rc);
 }
@@ -798,10 +1146,10 @@ function receiptHTML(rc) {
     <p class="rc-c rc-big">${esc(rc.date.replace(/\./g, '-'))}</p>
     <p class="rc-c">${esc(rc.time)} · ${esc(rc.no)}</p>
     <hr class="rc-hr">
-    ${rc.items.map(i => `<div class="rc-item"><span class="from">怨｜${esc(i.text)}</span><span class="to">念｜${i.other ? esc(i.other) : '（另一半尚未說出 · 下次再來）'}</span><span class="meta">對 ${esc(i.to)} · ${esc(i.dur)} · ${i.kg} kg${i.needs.length ? ' · 心：' + i.needs.map(esc).join('、') : ''}${i.hits ? ` · 砸了 ${i.hits} 下` : ''}${i.stamp ? ` · 印「${esc(i.stamp)}」` : ''}</span></div>`).join('')}
+    ${rc.items.map(i => `<div class="rc-item"><span class="from">怨｜${esc(i.text)}</span><span class="to">念｜${i.other ? esc(i.other) : '（另一半尚未說出 · 下次再來）'}</span><span class="meta">對 ${esc(i.to)} · ${esc(i.dur)} · ${i.kg} kg${i.needs.length ? ' · 心：' + i.needs.map(esc).join('、') : ''}${i.method === 'burn' ? ` · 燒了 ${i.rounds} 張` : i.hits ? ` · 砸了 ${i.hits} 下${i.rounds > 1 ? `（${i.rounds} 罐）` : ''}` : ''}${i.stamp ? ` · 印「${esc(i.stamp)}」` : ''}</span></div>`).join('')}
     <hr class="rc-hr">
     <p class="rc-kv"><span>怨念重量</span><span>${rc.kg} kg → 0.0 kg</span></p>
-    ${rc.hits ? `<p class="rc-kv"><span>砸碎</span><span>共 ${rc.hits} 下</span></p>` : ''}
+    ${rc.hits ? `<p class="rc-kv"><span>砸碎</span><span>共 ${rc.hits} 下</span></p>` : ''}${rc.burns ? `<p class="rc-kv"><span>燒掉</span><span>共 ${rc.burns} 張</span></p>` : ''}
     <p class="rc-kv"><span>蒸發的翻來覆去</span><span>約 ${rc.replay.toLocaleString()} 次</span></p>
     <p class="rc-kv"><span>取回的心</span><span>${rc.needs.map(esc).join('、') || '—'}</span></p>
     <hr class="rc-hr">
